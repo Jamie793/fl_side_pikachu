@@ -10,6 +10,8 @@ class SiteThumb {
   final List<String> tags;
   final int pageCount;
   final IllustType illustType;
+  final bool isFavorited;
+  final bool isFollowed;
 
   const SiteThumb({
     required this.id,
@@ -21,7 +23,35 @@ class SiteThumb {
     required this.tags,
     required this.pageCount,
     required this.illustType,
+    required this.isFavorited,
+    required this.isFollowed,
   });
+
+  copyWith({
+    String? id,
+    String? title,
+    String? thumbUrl,
+    double? aspectRatio,
+    String? avatarUrl,
+    String? author,
+    List<String>? tags,
+    int? pageCount,
+    IllustType? illustType,
+    bool? isFavorited,
+    bool? isFollowed,
+  }) => SiteThumb(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    thumbUrl: thumbUrl ?? this.thumbUrl,
+    aspectRatio: aspectRatio ?? this.aspectRatio,
+    avatarUrl: avatarUrl ?? this.avatarUrl,
+    author: author ?? this.author,
+    tags: tags ?? this.tags,
+    pageCount: pageCount ?? this.pageCount,
+    illustType: illustType ?? this.illustType,
+    isFavorited: isFavorited ?? this.isFavorited,
+    isFollowed: isFollowed ?? this.isFavorited,
+  );
 
   @override
   toString() =>

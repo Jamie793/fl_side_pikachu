@@ -23,22 +23,22 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (_isLoading) return;
 
     setState(() => _isLoading = true);
-    // ref
-    // .read(activeSiteProvider)
-    // .getDiscoveryList(_currentPage)
-    // .then((newData) {
-    //   if (newData.isNotEmpty) {
-    //     setState(() {
-    //       _items.addAll(newData);
-    //       _currentPage++;
-    //       _isLoading = false;
-    //     });
-    //   }
-    // })
-    // .catchError((e) {
-    //   setState(() => _isLoading = false);
-    //   print("加载更多失败: $e");
-    // });
+    ref
+        .read(activeSiteProvider)
+        .getRecommend(_currentPage)
+        .then((newData) {
+          if (newData.isNotEmpty) {
+            setState(() {
+              _items.addAll(newData);
+              _currentPage++;
+              _isLoading = false;
+            });
+          }
+        })
+        .catchError((e) {
+          setState(() => _isLoading = false);
+          print("加载更多失败: $e");
+        });
   }
 
   initState() {
@@ -76,7 +76,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 itemCount: _items.length + (_isLoading ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index < _items.length) {
-                    return _buildItem(_items[index]);
+                    return _buildItem(_items[index], index);
                   } else {
                     return const Padding(
                       padding: EdgeInsets.all(16.0),
@@ -96,7 +96,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.dispose();
   }
 
-  Widget _buildItem(SiteThumb item) {
+  Widget _buildItem(SiteThumb item, int index) {
     final site = ref.read(activeSiteProvider);
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -118,9 +118,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                     item.thumbUrl,
                     fit: BoxFit.cover,
                     cacheWidth: 450,
-                    // headers: site.headers,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error),
+                    headers: site.getHeaders(),
+                    errorBuilder: (context, error, stackTrace) {
+                      print("图片加载失败: $error");
+                      return const Icon(Icons.error);
+                    },
                   ),
                 ),
                 Padding(
@@ -156,8 +158,28 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ),
                       // const Spacer(),
                       IconButton(
-                        icon: const Icon(Icons.favorite_border),
-                        onPressed: () {},
+                        icon: item.isFavorited
+                            ? const Icon(Icons.favorite, color: Colors.red)
+                            : const Icon(Icons.favorite_border),
+                        onPressed: item.isFavorited
+                            ? () async {
+                                if (await site.unFavorIllust(item.id)) {
+                                  setState(() {
+                                    _items[index] = item.copyWith(
+                                      isFavorited: false,
+                                    );
+                                  });
+                                }
+                              }
+                            : () async {
+                                if (await site.favorIllust(item.id)) {
+                                  setState(() {
+                                    _items[index] = item.copyWith(
+                                      isFavorited: true,
+                                    );
+                                  });
+                                }
+                              },
                       ),
                     ],
                   ),
@@ -177,7 +199,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Text(
-                  '${item.illustType == IllustType.dynamic ? 'GIF' : ''}${item.pageCount}',
+                  '${item.illustType == IllustType.ai ? 'AI ' : ''}${item.pageCount}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pikachu/datas/models/models.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pikachu/providers/providers.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
@@ -21,12 +20,12 @@ class _DetailPageState extends ConsumerState<DetailPage> {
   void _fetchDetail(SiteThumb thumbData) async {
     if (_isLoading) return;
     setState(() => _isLoading = true);
-    // ref.read(activeSiteProvider).getDetail(thumbData.id).then((value) {
-    //   setState(() {
-    //     _detailData = value;
-    //     _isLoading = false;
-    //   });
-    // });
+    ref.read(activeSiteProvider).getDetail(thumbData.id).then((value) {
+      setState(() {
+        _detailData = value;
+        _isLoading = false;
+      });
+    });
   }
 
   @override
@@ -57,10 +56,10 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               itemBuilder: (context, index) {
                 if (index < _detailData!.urls.length) {
                   return Image.network(
-                    _detailData!.urls[index]['urls']['small'],
+                    _detailData!.urls[index],
                     cacheWidth: 450,
                     fit: BoxFit.contain,
-                    // headers: site.headers,
+                    headers: site.getHeaders(),
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
                       return Container(
@@ -112,9 +111,9 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: [
-                              Icon(Icons.tag_faces, size: 18.0),
+                              Icon(Icons.comment, size: 18.0),
                               Text(
-                                '${_detailData?.likeCount ?? 0}',
+                                '${_detailData?.commentCount ?? 0}',
                                 style: const TextStyle(fontSize: 16),
                               ),
                               SizedBox(width: 10.0),
@@ -129,12 +128,23 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                                 '${_detailData?.viewCount ?? 0}',
                                 style: const TextStyle(fontSize: 16),
                               ),
+                              SizedBox(width: 10.0),
+                              Icon(Icons.av_timer_rounded, size: 18.0),
+                              Text(
+                                DateTime.parse(
+                                  _detailData?.createDate ?? '',
+                                ).toLocal().toString().replaceAll('.000', ' '),
+                                style: const TextStyle(fontSize: 16),
+                              ),
                             ],
                           ),
                         ),
-                        Text(
-                          '${DateTime.parse(_detailData?.createDate ?? '').toLocal()}',
-                          style: const TextStyle(fontSize: 16),
+                        Row(children: [
+                           Text(
+                                '作品ID: ${_thumbData?.id ?? 0}',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                          ],
                         ),
                         SizedBox(height: 10.0),
                         Card(
@@ -152,7 +162,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                                             _thumbData!.avatarUrl.isNotEmpty
                                         ? NetworkImage(
                                             _thumbData!.avatarUrl,
-                                            // headers: site.headers,
+                                            headers: site.getHeaders(),
                                           )
                                         : null,
                                     child: _thumbData?.avatarUrl == null

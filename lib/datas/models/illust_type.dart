@@ -1,1 +1,1 @@
-enum IllustType { static, other, dynamic }
+enum IllustType { static, other, ai }

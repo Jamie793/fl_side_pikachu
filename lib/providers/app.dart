@@ -5,7 +5,7 @@ import 'package:pikachu/datas/models/site_type.dart';
 import 'package:pikachu/datas/services/bases/site_server.dart';
 import 'package:pikachu/providers/pixiv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:pikachu/datas/services/pixiv_server.dart';
+import 'package:pikachu/datas/models/site_type.dart';
 
 final preferenceProvider =
     AsyncNotifierProvider<PreferenceNotifier, Map<String, dynamic>>(() {
@@ -72,9 +72,9 @@ class PreferenceNotifier extends AsyncNotifier<Map<String, dynamic>> {
     state = AsyncData({...state.value!, 'isDarkMode': newDarkMode});
   }
 
-  Future<void> writeCurrentSite(String newSite) async {
+  Future<void> writeCurrentSite(SiteType newSite) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('current_site', newSite);
+    await prefs.setString('current_site', newSite.name);
 
     state = AsyncData({...state.value!, 'currentSite': newSite});
   }
@@ -99,14 +99,21 @@ class SiteNotifier extends Notifier<SiteServer> {
   }
 
   void changeSite(SiteType site) async {
-    await ref.read(preferenceProvider.notifier).writeCurrentSite(site.name);
+    await ref.read(preferenceProvider.notifier).writeCurrentSite(site);
   }
 }
 
 final currentLoginProvider = Provider<bool>((ref) {
   final site = ref.watch(activeSiteProvider);
-  if (site is SiteAuth) {
-    return (site as SiteAuth).isLogin();
-  }
-  return false;
+  final pref = ref.watch(preferenceProvider);
+  return pref.maybeWhen(
+    data: (data) {
+      if (site is SiteAuth) {
+        print('isLogin: ${(site as SiteAuth).isLogin()}');
+        return (site as SiteAuth).isLogin();
+      }
+      return false;
+    },
+    orElse: () => false,
+  );
 });

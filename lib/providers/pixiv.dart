@@ -11,6 +11,7 @@ final pixivConfigProvider = Provider<SiteConfig>((ref) {
   final header = {
     'User-Agent': 'PixivAndroidApp/5.0.234 (Android 11; Pixel 5)',
     'Content-Type': 'application/x-www-form-urlencoded',
+    'Referer': 'https://i.pximg.net',
   };
 
   preference.maybeWhen(
@@ -21,30 +22,6 @@ final pixivConfigProvider = Provider<SiteConfig>((ref) {
 
   return SiteConfig(siteType: SiteType.pixiv, headers: header);
 });
-// final pixivConfigProvider =
-//     Provider<PixivSiteConfigProvider, SiteConfig>(() {
-//       return PixivSiteConfigProvider();
-//     });
-
-// class PixivSiteConfigProvider extends AsyncNotifier<SiteConfig> {
-//   @override
-//   Future<SiteConfig> build() async {
-//     // final preference = ref.watch(preferenceProvider);
-
-//     final header = {
-//       'User-Agent': 'PixivAndroidApp/5.0.234 (Android 11; Pixel 5)',
-//       'Content-Type': 'application/x-www-form-urlencoded',
-//     };
-
-//     // final token = preference['pixivAccessToken'];
-
-//     // if (token != null && token.toString().isNotEmpty) {
-//     //   header['Authorization'] = 'Bearer $token';
-//     // }
-
-//     return SiteConfig(siteType: SiteType.pixiv, headers: header);
-//   }
-// }
 
 final pixivSiteProvider = Provider<PixivSite>((ref) {
   final dio = Dio();
@@ -58,13 +35,14 @@ final pixivSiteProvider = Provider<PixivSite>((ref) {
         return handler.next(options);
       },
       onError: (DioException e, handler) async {
-        if (e.response?.statusCode == 401) {
+        if (e.response?.statusCode == 400) {
           final prefs = ref.read(preferenceProvider).value;
           final refreshToken = prefs?['pixivRefreshToken'];
 
           if (refreshToken != null && refreshToken.isNotEmpty) {
             try {
-              site.refreshToken(refreshToken);
+              await site.refreshToken(refreshToken);
+              // print('New Access Token: ${prefs?['pixivAccessToken']}');
 
               final options = e.requestOptions;
               options.headers['Authorization'] =
@@ -81,5 +59,6 @@ final pixivSiteProvider = Provider<PixivSite>((ref) {
       },
     ),
   );
+
   return site;
 });

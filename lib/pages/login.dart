@@ -70,8 +70,6 @@ class _WebViewPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('登陆'),
-
         actions: [
           IconButton(
             onPressed: () async => await launchUrl(

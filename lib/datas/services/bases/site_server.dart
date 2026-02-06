@@ -12,9 +12,21 @@ abstract class SiteServer {
 
   Future<List<SiteThumb>> getDiscoveryList(int page);
 
+  Future<List<SiteThumb>> getRecommend(int page);
+
   Future<SiteDetail> getDetail(String id);
 
-  Future<bool> likeIllust(String id);
+  Future<bool> favorIllust(String id);
+
+  Future<bool> unFavorIllust(String id);
+
+  Future<bool> followUser(String userId);
+
+  Future<bool> unFollowUser(String userId);
+
+  Future<List<SiteThumb>> searchIllust(String keyword, int page);
+
+  Map<String, String> getHeaders();
 
   Future<Response> httpGet(String url) async {
     try {
