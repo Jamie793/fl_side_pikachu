@@ -18,6 +18,8 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _WebViewPageState extends ConsumerState<LoginPage> {
   late final WebViewController _controller;
+  bool isLoading = true;
+
   SiteServer? siteServer;
   String loginUrl = 'https://www.bilibili.com';
   late AppLinks _appLinks;
@@ -31,9 +33,15 @@ class _WebViewPageState extends ConsumerState<LoginPage> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (url) => {},
-          onPageFinished: (url) {},
-          onUrlChange: (url) {},
+          onPageStarted: (url) => setState(() => isLoading = true),
+          onPageFinished: (url) => setState(() => isLoading = false),
+          onUrlChange: (url) async {
+            final uri = Uri.parse(url.url ?? '');
+            final siteServer = ref.read(activeSiteProvider);
+            if (siteServer is SiteAuth) {
+              await (siteServer as SiteAuth).handleLogin(uri);
+            }
+          },
         ),
       );
 
@@ -84,7 +92,12 @@ class _WebViewPageState extends ConsumerState<LoginPage> {
           ),
         ],
       ),
-      body: WebViewWidget(controller: _controller),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller),
+          if (isLoading) const Center(child: CircularProgressIndicator()),
+        ],
+      ),
     );
   }
 }
