@@ -40,6 +40,12 @@ class _AppPageState extends ConsumerState<AppPage> {
             : Text(
                 '登录${(ref.watch(preferenceProvider).value?['currentSite'] as SiteType?)?.name ?? 'Pixiv'}',
               ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search,size: 30,),
+            onPressed: () => Navigator.pushNamed(context, '/search'),
+          ),
+        ],
       ),
       bottomNavigationBar: isLogin
           ? BottomNavigationBar(
