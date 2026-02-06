@@ -54,7 +54,7 @@ class SiteThumb {
     pageCount: pageCount ?? this.pageCount,
     illustType: illustType ?? this.illustType,
     isFavorited: isFavorited ?? this.isFavorited,
-    isFollowed: isFollowed ?? this.isFavorited,
+    isFollowed: isFollowed ?? this.isFollowed,
   );
 
   @override
