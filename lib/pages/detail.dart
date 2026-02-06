@@ -4,6 +4,7 @@ import 'package:pikachu/providers/providers.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:pikachu/datas/models/site_detail.dart';
 import 'package:pikachu/datas/models/site_thumb.dart';
+import 'package:intl/intl.dart';
 
 class DetailPage extends ConsumerStatefulWidget {
   const DetailPage({super.key});
@@ -131,19 +132,22 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                               SizedBox(width: 10.0),
                               Icon(Icons.av_timer_rounded, size: 18.0),
                               Text(
-                                DateTime.parse(
-                                  _detailData?.createDate ?? '',
-                                ).toLocal().toString().replaceAll('.000', ' '),
+                                DateFormat('yyyy-MM-dd HH:mm').format(
+                                  DateTime.parse(
+                                    _detailData?.createDate ?? '',
+                                  ).toLocal(),
+                                ),
                                 style: const TextStyle(fontSize: 16),
                               ),
                             ],
                           ),
                         ),
-                        Row(children: [
-                           Text(
-                                '作品ID: ${_thumbData?.id ?? 0}',
-                                style: const TextStyle(fontSize: 16),
-                              ),
+                        Row(
+                          children: [
+                            Text(
+                              '作品ID: ${_thumbData?.id ?? 0}',
+                              style: const TextStyle(fontSize: 16),
+                            ),
                           ],
                         ),
                         SizedBox(height: 10.0),
@@ -187,9 +191,37 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                                 ),
                                 Spacer(),
                                 ElevatedButton(
-                                  onPressed: () {},
+                                  onPressed: () async {
+                                    if (_thumbData?.isFollowed == true) {
+                                      if (await ref
+                                          .read(activeSiteProvider)
+                                          .followUser(
+                                            _thumbData?.userId.toString() ?? '',
+                                          )) {
+                                        setState(() {
+                                          _thumbData = _thumbData?.copyWith(
+                                            isFollowed: false,
+                                          );
+                                        });
+                                      }
+                                    } else {
+                                      if (await ref
+                                          .read(activeSiteProvider)
+                                          .followUser(
+                                            _thumbData?.userId.toString() ?? '',
+                                          )) {
+                                        setState(() {
+                                          _thumbData = _thumbData?.copyWith(
+                                            isFollowed: true,
+                                          );
+                                        });
+                                      }
+                                    }
+                                  },
                                   child: Text(
-                                    '+关注',
+                                    _thumbData?.isFollowed == true
+                                        ? '取消关注'
+                                        : '关注',
                                     style: TextStyle(fontSize: 16),
                                   ),
                                 ),

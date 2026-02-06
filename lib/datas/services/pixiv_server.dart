@@ -92,13 +92,12 @@ class PixivSite extends SiteServer implements SiteAuth {
           (e) => SiteThumb(
             id: e['id'].toString(),
             title: e['title'],
-            thumbUrl: e['meta_single_page'].isNotEmpty
-                ? e['meta_single_page']['original_image_url']
-                : e['image_urls']['large'],
+            thumbUrl: e['image_urls']['large'],
             aspectRatio: e['width'] / e['height'],
             avatarUrl: e['user']['profile_image_urls']['medium'],
             author: e['user']['account'],
             tags: List<String>.from(e['tags'].map((e) => e['name'].toString())),
+            userId: e['user']['id'],
             pageCount: e['page_count'],
             illustType: IllustType.values[e['illust_ai_type']],
             isFavorited: e['is_bookmarked'],
@@ -180,9 +179,21 @@ class PixivSite extends SiteServer implements SiteAuth {
   }
 
   @override
-  Future<bool> followUser(String userId) {
-    // TODO: implement followUser
-    throw UnimplementedError();
+  Future<bool> followUser(String userId) async {
+    final response = await httpPost(
+      'https://app-api.pixiv.net/v1/user/follow/add',
+      {"user_id": userId, "restrict": 'public'},
+    );
+    return response.statusCode == 200;
+  }
+
+  @override
+  Future<bool> unFollowUser(String userId) async {
+    final response = await httpPost(
+      'https://app-api.pixiv.net/v1/user/follow/delete',
+      {"user_id": userId},
+    );
+    return response.statusCode == 200;
   }
 
   @override
@@ -194,12 +205,6 @@ class PixivSite extends SiteServer implements SiteAuth {
   @override
   Future<List<SiteThumb>> searchIllust(String keyword, int page) {
     // TODO: implement searchIllust
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<bool> unFollowUser(String userId) {
-    // TODO: implement unFollowUser
     throw UnimplementedError();
   }
 

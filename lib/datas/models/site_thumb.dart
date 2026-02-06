@@ -8,6 +8,7 @@ class SiteThumb {
   final String avatarUrl;
   final String author;
   final List<String> tags;
+  final int userId;
   final int pageCount;
   final IllustType illustType;
   final bool isFavorited;
@@ -21,6 +22,7 @@ class SiteThumb {
     required this.avatarUrl,
     required this.author,
     required this.tags,
+    required this.userId,
     required this.pageCount,
     required this.illustType,
     required this.isFavorited,
@@ -35,6 +37,7 @@ class SiteThumb {
     String? avatarUrl,
     String? author,
     List<String>? tags,
+    int? userId,
     int? pageCount,
     IllustType? illustType,
     bool? isFavorited,
@@ -47,6 +50,7 @@ class SiteThumb {
     avatarUrl: avatarUrl ?? this.avatarUrl,
     author: author ?? this.author,
     tags: tags ?? this.tags,
+    userId: userId ?? this.userId,
     pageCount: pageCount ?? this.pageCount,
     illustType: illustType ?? this.illustType,
     isFavorited: isFavorited ?? this.isFavorited,
