@@ -81,7 +81,7 @@ class PixivSite extends SiteServer implements SiteAuth {
   @override
   Future<List<SiteThumb>> getRecommend(int page) async {
     final response = await httpGet(
-      'https://app-api.pixiv.net/v1/illust/recommended',
+      'https://app-api.pixiv.net/v1/illust/recommended?offset=${page * 30}',
     );
     final thumbnails = response.data['illusts'];
     final List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(
@@ -92,7 +92,7 @@ class PixivSite extends SiteServer implements SiteAuth {
           (e) => SiteThumb(
             id: e['id'].toString(),
             title: e['title'],
-            thumbUrl: e['image_urls']['large'],
+            thumbUrl: e['image_urls']['medium'],
             aspectRatio: e['width'] / e['height'],
             avatarUrl: e['user']['profile_image_urls']['medium'],
             author: e['user']['account'],
@@ -162,6 +162,9 @@ class PixivSite extends SiteServer implements SiteAuth {
 
   @override
   Future<bool> favorIllust(String id) async {
+    if (id.isEmpty) {
+      return false;
+    }
     final response = await httpPost(
       'https://app-api.pixiv.net/v2/illust/bookmark/add',
       {"illust_id": id, "restrict": 'public'},
@@ -171,6 +174,9 @@ class PixivSite extends SiteServer implements SiteAuth {
 
   @override
   Future<bool> unFavorIllust(String id) async {
+    if (id.isEmpty) {
+      return false;
+    }
     final response = await httpPost(
       'https://app-api.pixiv.net/v1/illust/bookmark/delete',
       {"illust_id": id},
@@ -180,6 +186,9 @@ class PixivSite extends SiteServer implements SiteAuth {
 
   @override
   Future<bool> followUser(String userId) async {
+    if (userId.isEmpty) {
+      return false;
+    }
     final response = await httpPost(
       'https://app-api.pixiv.net/v1/user/follow/add',
       {"user_id": userId, "restrict": 'public'},
@@ -189,6 +198,9 @@ class PixivSite extends SiteServer implements SiteAuth {
 
   @override
   Future<bool> unFollowUser(String userId) async {
+    if (userId.isEmpty) {
+      return false;
+    }
     final response = await httpPost(
       'https://app-api.pixiv.net/v1/user/follow/delete',
       {"user_id": userId},
