@@ -4,7 +4,7 @@
 
     <application
         android:label="fl_side"
-        android:name="${applicationName}"
+        android:name="Pkachu"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

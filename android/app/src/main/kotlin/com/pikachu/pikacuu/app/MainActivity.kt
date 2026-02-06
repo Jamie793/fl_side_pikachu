@@ -1,4 +1,4 @@
-package com.example.fl_side
+package com.pikachu.pikacuu.app
 
 import io.flutter.embedding.android.FlutterActivity
 
