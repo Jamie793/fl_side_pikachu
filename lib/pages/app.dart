@@ -38,7 +38,7 @@ class _AppPageState extends ConsumerState<AppPage> {
         title: isLogin
             ? const Text('Pikachu')
             : Text(
-                '登录${(ref.watch(preferenceProvider).value?['currentSite'] as SiteType?)?.name ?? 'pixiv'}',
+                '登录${(ref.watch(preferenceProvider).value?['currentSite'] as SiteType?)?.name ?? 'Pixiv'}',
               ),
       ),
       bottomNavigationBar: isLogin
