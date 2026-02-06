@@ -47,7 +47,42 @@ class _DetailPageState extends ConsumerState<DetailPage> {
   Widget build(BuildContext context) {
     final tags = _thumbData?.tags ?? [];
     final site = ref.read(activeSiteProvider);
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
+        if (context.mounted) {
+          Navigator.pop(context, _thumbData);
+        }
+      },
+      child: Scaffold(
+        floatingActionButton: AnimatedScale(
+          scale: _isFabVisible ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 300),
+          child: FloatingActionButton(
+            onPressed: () async {
+              if (_thumbData?.isFavorited == true) {
+                if (await site.unFavorIllust(_thumbData?.id ?? '') == true) {
+                  setState(
+                    () => _thumbData = _thumbData?.copyWith(isFavorited: false),
+                  );
+                }
+              } else {
+                if (await site.favorIllust(_thumbData?.id ?? '') == true) {
+                  setState(
+                    () => _thumbData = _thumbData?.copyWith(isFavorited: true),
+                  );
+                }
+              }
+            },
+            child: Icon(
+              _thumbData?.isFavorited == true
+                  ? Icons.favorite
+                  : Icons.favorite_border,
+              color: _thumbData?.isFavorited == true ? Colors.red : Colors.grey,
+            ),
+          ),
+        ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
@@ -74,7 +109,10 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                     errorBuilder: (context, error, stackTrace) => Container(
                       height: 100,
                       color: Colors.grey[200],
-                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                        child: const Icon(
+                          Icons.broken_image,
+                          color: Colors.grey,
+                        ),
                     ),
                   );
                 } else {
@@ -100,9 +138,21 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                             runSpacing: 0.0,
                             children: tags
                                 .map(
-                                  (tag) => Text(
-                                    tag,
-                                    style: const TextStyle(fontSize: 14),
+                                    (tag) => GestureDetector(
+                                      onTap: () {
+                                        Navigator.pushNamed(
+                                          context,
+                                          '/search',
+                                          arguments: '$tag',
+                                        );
+                                      },
+                                      child: Text(
+                                        '#$tag',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.blue,
+                                        ),
+                                      ),
                                   ),
                                 )
                                 .toList(),
@@ -115,20 +165,23 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                               Icon(Icons.comment, size: 18.0),
                               Text(
                                 '${_detailData?.commentCount ?? 0}',
-                                style: const TextStyle(fontSize: 16),
+                                  style: const TextStyle(fontSize: 14),
                               ),
+
                               SizedBox(width: 10.0),
                               Icon(Icons.favorite, size: 18.0),
                               Text(
                                 '${_detailData?.favoriteCount ?? 0}',
-                                style: const TextStyle(fontSize: 16),
+                                  style: const TextStyle(fontSize: 14),
                               ),
+
                               SizedBox(width: 10.0),
                               Icon(Icons.remove_red_eye_sharp, size: 18.0),
                               Text(
                                 '${_detailData?.viewCount ?? 0}',
-                                style: const TextStyle(fontSize: 16),
+                                  style: const TextStyle(fontSize: 14),
                               ),
+
                               SizedBox(width: 10.0),
                               Icon(Icons.av_timer_rounded, size: 18.0),
                               Text(
@@ -137,7 +190,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                                     _detailData?.createDate ?? '',
                                   ).toLocal(),
                                 ),
-                                style: const TextStyle(fontSize: 16),
+                                  style: const TextStyle(fontSize: 14),
                               ),
                             ],
                           ),
@@ -196,7 +249,8 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                                       if (await ref
                                           .read(activeSiteProvider)
                                           .followUser(
-                                            _thumbData?.userId.toString() ?? '',
+                                              _thumbData?.userId.toString() ??
+                                                  '',
                                           )) {
                                         setState(() {
                                           _thumbData = _thumbData?.copyWith(
@@ -208,7 +262,8 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                                       if (await ref
                                           .read(activeSiteProvider)
                                           .followUser(
-                                            _thumbData?.userId.toString() ?? '',
+                                              _thumbData?.userId.toString() ??
+                                                  '',
                                           )) {
                                         setState(() {
                                           _thumbData = _thumbData?.copyWith(
@@ -234,6 +289,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                   );
                 }
               },
+              ),
             ),
     );
   }

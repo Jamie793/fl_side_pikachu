@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pikachu/providers/app.dart';
-import 'package:pikachu/datas/models/illust_type.dart';
 import 'package:pikachu/datas/models/site_thumb.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:pikachu/views/thumb_view.dart';
 
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
@@ -15,39 +13,29 @@ class SearchPage extends ConsumerStatefulWidget {
 
 class _SearchPageState extends ConsumerState<SearchPage> {
   TextEditingController _controller = TextEditingController();
+  ThumbListController _thumbListController = ThumbListController();
   final FocusNode _focusNode = FocusNode();
-  final List<SiteThumb> _items = [];
-  final ScrollController _scrollController = ScrollController();
   int _currentPage = 0;
-  bool _isLoading = false;
-
   @override
   void initState() {
     super.initState();
   }
 
-  void _fetchNextPage() async {
-    if (_isLoading) return;
-    if (_controller.text.isEmpty) return;
-
-    setState(() => _isLoading = true);
-
-    ref
+  Future<List<SiteThumb>> _fetchNextPage() async {
+    return ref
         .read(activeSiteProvider)
-        .searchIllust(_controller.text, _currentPage)
-        .then((newData) {
-          if (newData.isNotEmpty) {
-            setState(() {
-              _items.addAll(newData);
-              _currentPage++;
-              _isLoading = false;
-            });
-          }
-        })
-        .catchError((e) {
-          setState(() => _isLoading = false);
-          print("加载更多失败: $e");
-        });
+        .searchIllust(_controller.text, _currentPage++);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final tag = ModalRoute.of(context)?.settings.arguments as String?;
+    if (tag != null) {
+      _controller.text = tag;
+      _thumbListController.refresh();
+      _focusNode.unfocus();
+    }
   }
 
   @override
