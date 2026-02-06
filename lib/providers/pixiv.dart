@@ -32,6 +32,7 @@ final pixivSiteProvider = Provider<PixivSite>((ref) {
       onRequest: (options, handler) {
         final config = ref.read(pixivConfigProvider);
         options.headers.addAll(config.headers);
+        // options.queryParameters.addAll({'filter': 'for_android'});
         return handler.next(options);
       },
       onError: (DioException e, handler) async {
