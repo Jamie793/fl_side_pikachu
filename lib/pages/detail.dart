@@ -5,6 +5,7 @@ import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:pikachu/datas/models/site_detail.dart';
 import 'package:pikachu/datas/models/site_thumb.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/rendering.dart';
 
 class DetailPage extends ConsumerStatefulWidget {
   const DetailPage({super.key});
@@ -14,9 +15,11 @@ class DetailPage extends ConsumerStatefulWidget {
 }
 
 class _DetailPageState extends ConsumerState<DetailPage> {
+  final ScrollController _scrollController = ScrollController();
   SiteDetail? _detailData;
   SiteThumb? _thumbData;
   bool _isLoading = false;
+  bool _isFabVisible = true;
 
   void _fetchDetail(SiteThumb thumbData) async {
     if (_isLoading) return;
@@ -32,6 +35,14 @@ class _DetailPageState extends ConsumerState<DetailPage> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse) {
+        setState(() => _isFabVisible = false);
+      } else {
+        setState(() => _isFabVisible = true);
+      }
+    });
   }
 
   @override
@@ -83,61 +94,62 @@ class _DetailPageState extends ConsumerState<DetailPage> {
             ),
           ),
         ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _detailData?.urls.length == null
-                  ? 0
-                  : _detailData!.urls.length + 1,
-              itemBuilder: (context, index) {
-                if (index < _detailData!.urls.length) {
-                  return Image.network(
-                    _detailData!.urls[index],
-                    cacheWidth: 450,
-                    fit: BoxFit.contain,
-                    headers: site.getHeaders(),
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        height: 200,
-                        color: Colors.grey[100],
-                        child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 100,
-                      color: Colors.grey[200],
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView.builder(
+                controller: _scrollController,
+                itemCount: _detailData?.urls.length == null
+                    ? 0
+                    : _detailData!.urls.length + 1,
+                itemBuilder: (context, index) {
+                  if (index < _detailData!.urls.length) {
+                    return Image.network(
+                      _detailData!.urls[index],
+                      cacheWidth: 450,
+                      fit: BoxFit.contain,
+                      headers: site.getHeaders(),
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          height: 200,
+                          color: Colors.grey[100],
+                          child: const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: 100,
+                        color: Colors.grey[200],
                         child: const Icon(
                           Icons.broken_image,
                           color: Colors.grey,
                         ),
-                    ),
-                  );
-                } else {
-                  return Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _thumbData?.title ?? '',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  } else {
+                    return Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _thumbData?.title ?? '',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        HtmlWidget(_detailData?.description ?? ''),
+                          HtmlWidget(_detailData?.description ?? ''),
 
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10.0),
-                          child: Wrap(
-                            spacing: 6.0,
-                            runSpacing: 0.0,
-                            children: tags
-                                .map(
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10.0),
+                            child: Wrap(
+                              spacing: 6.0,
+                              runSpacing: 0.0,
+                              children: tags
+                                  .map(
                                     (tag) => GestureDetector(
                                       onTap: () {
                                         Navigator.pushNamed(
@@ -153,144 +165,144 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                                           color: Colors.blue,
                                         ),
                                       ),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              Icon(Icons.comment, size: 18.0),
-                              Text(
-                                '${_detailData?.commentCount ?? 0}',
-                                  style: const TextStyle(fontSize: 14),
-                              ),
-
-                              SizedBox(width: 10.0),
-                              Icon(Icons.favorite, size: 18.0),
-                              Text(
-                                '${_detailData?.favoriteCount ?? 0}',
-                                  style: const TextStyle(fontSize: 14),
-                              ),
-
-                              SizedBox(width: 10.0),
-                              Icon(Icons.remove_red_eye_sharp, size: 18.0),
-                              Text(
-                                '${_detailData?.viewCount ?? 0}',
-                                  style: const TextStyle(fontSize: 14),
-                              ),
-
-                              SizedBox(width: 10.0),
-                              Icon(Icons.av_timer_rounded, size: 18.0),
-                              Text(
-                                DateFormat('yyyy-MM-dd HH:mm').format(
-                                  DateTime.parse(
-                                    _detailData?.createDate ?? '',
-                                  ).toLocal(),
-                                ),
-                                  style: const TextStyle(fontSize: 14),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              '作品ID: ${_thumbData?.id ?? 0}',
-                              style: const TextStyle(fontSize: 16),
+                                    ),
+                                  )
+                                  .toList(),
                             ),
-                          ],
-                        ),
-                        SizedBox(height: 10.0),
-                        Card(
-                          margin: const EdgeInsets.all(0),
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
                             child: Row(
                               children: [
-                                if (_thumbData?.avatarUrl != null)
-                                  CircleAvatar(
-                                    radius: 25.0,
-                                    backgroundColor: Colors.grey[200],
-                                    backgroundImage:
-                                        _thumbData?.avatarUrl != null &&
-                                            _thumbData!.avatarUrl.isNotEmpty
-                                        ? NetworkImage(
-                                            _thumbData!.avatarUrl,
-                                            headers: site.getHeaders(),
-                                          )
-                                        : null,
-                                    child: _thumbData?.avatarUrl == null
-                                        ? Icon(Icons.person)
-                                        : null,
-                                  ),
-                                SizedBox(width: 10.0),
-                                Column(
-                                  children: [
-                                    Text(
-                                      '${_thumbData?.author}',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    // Text(
-                                    //   '${_thumbData?.likes ?? 0}',
-                                    //   style: const TextStyle(fontSize: 16),
-                                    // ),
-                                  ],
+                                Icon(Icons.comment, size: 18.0),
+                                Text(
+                                  '${_detailData?.commentCount ?? 0}',
+                                  style: const TextStyle(fontSize: 14),
                                 ),
-                                Spacer(),
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    if (_thumbData?.isFollowed == true) {
-                                      if (await ref
-                                          .read(activeSiteProvider)
-                                          .followUser(
-                                              _thumbData?.userId.toString() ??
-                                                  '',
-                                          )) {
-                                        setState(() {
-                                          _thumbData = _thumbData?.copyWith(
-                                            isFollowed: false,
-                                          );
-                                        });
-                                      }
-                                    } else {
-                                      if (await ref
-                                          .read(activeSiteProvider)
-                                          .followUser(
-                                              _thumbData?.userId.toString() ??
-                                                  '',
-                                          )) {
-                                        setState(() {
-                                          _thumbData = _thumbData?.copyWith(
-                                            isFollowed: true,
-                                          );
-                                        });
-                                      }
-                                    }
-                                  },
-                                  child: Text(
-                                    _thumbData?.isFollowed == true
-                                        ? '取消关注'
-                                        : '关注',
-                                    style: TextStyle(fontSize: 16),
+
+                                SizedBox(width: 10.0),
+                                Icon(Icons.favorite, size: 18.0),
+                                Text(
+                                  '${_detailData?.favoriteCount ?? 0}',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+
+                                SizedBox(width: 10.0),
+                                Icon(Icons.remove_red_eye_sharp, size: 18.0),
+                                Text(
+                                  '${_detailData?.viewCount ?? 0}',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+
+                                SizedBox(width: 10.0),
+                                Icon(Icons.av_timer_rounded, size: 18.0),
+                                Text(
+                                  DateFormat('yyyy-MM-dd HH:mm').format(
+                                    DateTime.parse(
+                                      _detailData?.createDate ?? '',
+                                    ).toLocal(),
                                   ),
+                                  style: const TextStyle(fontSize: 14),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-              },
+                          Row(
+                            children: [
+                              Text(
+                                '作品ID: ${_thumbData?.id ?? 0}',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10.0),
+                          Card(
+                            margin: const EdgeInsets.all(0),
+                            child: Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Row(
+                                children: [
+                                  if (_thumbData?.avatarUrl != null)
+                                    CircleAvatar(
+                                      radius: 25.0,
+                                      backgroundColor: Colors.grey[200],
+                                      backgroundImage:
+                                          _thumbData?.avatarUrl != null &&
+                                              _thumbData!.avatarUrl.isNotEmpty
+                                          ? NetworkImage(
+                                              _thumbData!.avatarUrl,
+                                              headers: site.getHeaders(),
+                                            )
+                                          : null,
+                                      child: _thumbData?.avatarUrl == null
+                                          ? Icon(Icons.person)
+                                          : null,
+                                    ),
+                                  SizedBox(width: 10.0),
+                                  Column(
+                                    children: [
+                                      Text(
+                                        '${_thumbData?.author}',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      // Text(
+                                      //   '${_thumbData?.likes ?? 0}',
+                                      //   style: const TextStyle(fontSize: 16),
+                                      // ),
+                                    ],
+                                  ),
+                                  Spacer(),
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      if (_thumbData?.isFollowed == true) {
+                                        if (await ref
+                                            .read(activeSiteProvider)
+                                            .followUser(
+                                              _thumbData?.userId.toString() ??
+                                                  '',
+                                            )) {
+                                          setState(() {
+                                            _thumbData = _thumbData?.copyWith(
+                                              isFollowed: false,
+                                            );
+                                          });
+                                        }
+                                      } else {
+                                        if (await ref
+                                            .read(activeSiteProvider)
+                                            .followUser(
+                                              _thumbData?.userId.toString() ??
+                                                  '',
+                                            )) {
+                                          setState(() {
+                                            _thumbData = _thumbData?.copyWith(
+                                              isFollowed: true,
+                                            );
+                                          });
+                                        }
+                                      }
+                                    },
+                                    child: Text(
+                                      _thumbData?.isFollowed == true
+                                          ? '取消关注'
+                                          : '关注',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                },
               ),
-            ),
+      ),
     );
   }
 }
