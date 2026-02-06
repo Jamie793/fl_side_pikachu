@@ -254,6 +254,39 @@ class PixivSite extends SiteServer implements SiteAuth {
   }
 
   @override
+  Future<List<SiteThumb>> getRelatedIllusts(String id) async {
+    if (id.isEmpty) {
+      return [];
+    }
+    final response = await httpGet(
+      'https://app-api.pixiv.net/v2/illust/related?illust_id=$id',
+    );
+    final thumbnails = response.data['illusts'];
+    final List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(
+      thumbnails.map((e) => Map<String, dynamic>.from(e)),
+    );
+    final res = data
+        .map(
+          (e) => SiteThumb(
+            id: e['id'].toString(),
+            title: e['title'],
+            thumbUrl: e['image_urls']['large'],
+            aspectRatio: e['width'] / e['height'],
+            avatarUrl: e['user']['profile_image_urls']['medium'],
+            author: e['user']['account'],
+            tags: List<String>.from(e['tags'].map((e) => e['name'].toString())),
+            userId: e['user']['id'],
+            pageCount: e['page_count'],
+            illustType: IllustType.values[e['illust_ai_type']],
+            isFavorited: e['is_bookmarked'],
+            isFollowed: e['user']['is_followed'],
+          ),
+        )
+        .toList();
+    return res;
+  }
+
+  @override
   Map<String, String> getHeaders() {
     // TODO: implement getHeaders
     return ref.read(pixivConfigProvider).headers;

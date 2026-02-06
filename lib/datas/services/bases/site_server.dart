@@ -28,6 +28,8 @@ abstract class SiteServer {
 
   Future<List<String>> getAutoCompleteWords(String keyword);
 
+  Future<List<SiteThumb>> getRelatedIllusts(String id);
+
   Map<String, String> getHeaders();
 
   Future<Response> httpGet(String url) async {
