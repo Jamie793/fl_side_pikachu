@@ -284,9 +284,9 @@ class PixivSite extends SiteServer implements SiteAuth {
   }
 
   List<SiteThumb> _parseThumb(dynamic data) {
-    final thumbnails = data['illusts'];
+    final thumbs = data['illusts'];
     final List<Map<String, dynamic>> mapData = List<Map<String, dynamic>>.from(
-      thumbnails.map((e) => Map<String, dynamic>.from(e)),
+      thumbs.map((e) => Map<String, dynamic>.from(e)),
     );
     final res = mapData
         .where((e) => e['visible'] != false)
