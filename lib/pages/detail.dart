@@ -18,6 +18,7 @@ class DetailPage extends ConsumerStatefulWidget {
 
 class _DetailPageState extends ConsumerState<DetailPage> {
   final ScrollController _scrollController = ScrollController();
+  final ScrollController _relatedScrollController = ScrollController();
   final List<SiteThumb> _relatedIllusts = [];
   SiteDetail? _detailData;
   SiteThumb? _thumbData;
@@ -54,7 +55,17 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       } else {
         setState(() => _isFabVisible = true);
       }
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        _fetchRelated(_thumbData!);
+      }
     });
+    // _relatedScrollController.addListener(() {
+    //   if (_relatedScrollController.position.pixels >=
+    //       _relatedScrollController.position.maxScrollExtent - 200) {
+    //     _fetchRelated(_thumbData!);
+    //   }
+    // });
   }
 
   @override
@@ -139,75 +150,73 @@ class _DetailPageState extends ConsumerState<DetailPage> {
             headers: site.getHeaders(),
           );
         } else {
-          return Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _thumbData?.title ?? '',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                HtmlWidget(_detailData?.description ?? ''),
-
-                _buildTag(tags, context),
-                _buildInfo(),
-
-                Row(
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      '作品ID: ${_thumbData?.id ?? 0}',
-                      style: const TextStyle(fontSize: 14),
+                      _thumbData?.title ?? '',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    SizedBox(width: 20.0),
-                    Text(
-                      '作者ID: ${_thumbData?.userId ?? 0}',
-                      style: const TextStyle(fontSize: 14),
+                    HtmlWidget(_detailData?.description ?? ''),
+
+                    _buildTag(tags, context),
+                    _buildInfo(),
+
+                    Row(
+                      children: [
+                        Text(
+                          '作品ID: ${_thumbData?.id ?? 0}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(width: 20.0),
+                        Text(
+                          '作者ID: ${_thumbData?.userId ?? 0}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
                     ),
+                    SizedBox(height: 10.0),
+                    _buildUser(site),
                   ],
                 ),
-                SizedBox(height: 10.0),
-                _buildUser(site),
-
-                _buildRelated(site),
-              ],
-            ),
+              ),
+              _buildRelated(site),
+            ],
           );
         }
       },
     );
   }
 
-  Padding _buildRelated(SiteServer site) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-        ),
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: _relatedIllusts.length,
-        itemBuilder: (context, index) => Card(
-          child: InkWell(
-            onTap: () {
-              Navigator.pushNamed(
-                context,
-                '/detail',
-                arguments: _relatedIllusts[index],
-              );
-            },
-            child: SmartImageView(
-              imageUrl: _relatedIllusts[index].thumbUrl,
-              cacheWidth: 450,
-              fit: BoxFit.cover,
-              headers: site.getHeaders(),
-            ),
-          ),
+  Widget _buildRelated(SiteServer site) {
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+      ),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _relatedIllusts.length,
+      itemBuilder: (context, index) => InkWell(
+        onTap: () {
+          Navigator.pushNamed(
+            context,
+            '/detail',
+            arguments: _relatedIllusts[index],
+          );
+        },
+        child: SmartImageView(
+          imageUrl: _relatedIllusts[index].thumbUrl,
+          cacheWidth: 450,
+          fit: BoxFit.cover,
+          headers: site.getHeaders(),
         ),
       ),
     );
