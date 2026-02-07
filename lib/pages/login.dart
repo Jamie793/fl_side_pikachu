@@ -49,7 +49,6 @@ class _WebViewPageState extends ConsumerState<LoginPage> {
     if (siteServer != null) {
       final loginUrl = siteServer?.getLoginUrl() ?? '';
       this.loginUrl = loginUrl;
-      print(this.loginUrl);
       _controller.loadRequest(Uri.parse(this.loginUrl));
     }
   }
@@ -64,7 +63,7 @@ class _WebViewPageState extends ConsumerState<LoginPage> {
         }
       });
     } catch (e) {
-      print('Error: $e');
+      debugPrint('Error: $e');
     }
   }
 

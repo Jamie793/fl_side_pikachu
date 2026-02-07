@@ -10,6 +10,7 @@ import 'package:pikachu/datas/services/bases/site_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pikachu/providers/app.dart';
 import 'package:pikachu/providers/pixiv.dart';
+import 'package:pikachu/datas/models/user_info.dart';
 
 class PixivSite extends SiteServer implements SiteAuth {
   final String clientID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
@@ -22,8 +23,13 @@ class PixivSite extends SiteServer implements SiteAuth {
   final String userAgent =
       "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Mobile Safari/537.36";
   String challengeCode = '';
+
   final Ref ref;
-  PixivSite(this.ref, Dio dio) : super(dio);
+
+  @override
+  UserInfo userInfo = UserInfo.empty();
+
+  PixivSite(this.ref, Dio dio, this.userInfo) : super(dio);
 
   @override
   String getLoginUrl() {
@@ -40,7 +46,7 @@ class PixivSite extends SiteServer implements SiteAuth {
     return challengeCode;
   }
 
-  Future<Map<String, dynamic>> fetchToken(String code) async {
+  Future<Map<String, dynamic>> _fetchToken(String code) async {
     final response = await httpPost(tokenURL, {
       'client_id': clientID,
       'client_secret': clientSecret,
@@ -53,28 +59,25 @@ class PixivSite extends SiteServer implements SiteAuth {
     return response.data;
   }
 
-  Future<void> refreshToken(String refreshToken) async {
+  Future<void> refreshToken() async {
     final response = await dio.post(
       "https://oauth.secure.pixiv.net/auth/token",
       data: {
         'client_id': clientID,
         'client_secret': clientSecret,
         'grant_type': 'refresh_token',
-        'refresh_token': refreshToken,
+        'refresh_token': userInfo.refreshToken ?? '',
         'include_policy': 'true',
       },
       options: Options(contentType: Headers.formUrlEncodedContentType),
     );
     final data = response.data as Map<String, dynamic>;
     if (data.containsKey('access_token')) {
-      final accessToken = data['access_token'] as String;
-      final refreshToken = data['refresh_token'] as String;
-      await ref
-          .read(preferenceProvider.notifier)
-          .writePixivToken(
-            accessToken: accessToken,
-            refreshToken: refreshToken,
-          );
+      userInfo = userInfo.copyWith(
+        accessToken: data['access_token'] as String? ?? '',
+        refreshToken: data['refresh_token'] as String? ?? '',
+      );
+      await ref.read(preferenceProvider.notifier).writePixivInfo(userInfo);
     }
   }
 
@@ -233,7 +236,6 @@ class PixivSite extends SiteServer implements SiteAuth {
 
   @override
   Map<String, String> getHeaders() {
-    // TODO: implement getHeaders
     return ref.read(pixivConfigProvider).headers;
   }
 
@@ -247,27 +249,25 @@ class PixivSite extends SiteServer implements SiteAuth {
     if (code == null) {
       return false;
     }
-    final data = await fetchToken(code);
+    final data = await _fetchToken(code);
     if (!data.containsKey('access_token')) {
       return false;
     }
-    final accessToken = data['access_token'];
-    final refreshToken = data['refresh_token'];
-    await ref
-        .read(preferenceProvider.notifier)
-        .writePixivToken(accessToken: accessToken, refreshToken: refreshToken);
+    userInfo = userInfo.copyWith(
+      userId: data['user']['id'],
+      userName: data['user']['name'],
+      userAvatarUrl: data['user']['profile_image_urls']['px_170x170'],
+      userAccount: data['user']['account'],
+      accessToken: data['access_token'],
+      refreshToken: data['refresh_token'],
+      userEmail: data['user']['mail_address'],
+    );
+    await ref.read(preferenceProvider.notifier).writePixivInfo(userInfo);
     return true;
   }
 
   @override
-  bool isLogin() {
-    print('headers: ${ref.read(pixivConfigProvider).headers}');
-    return ref.read(pixivConfigProvider).headers.containsKey('Authorization') &&
-        ref.read(pixivConfigProvider).headers['Authorization'] != null &&
-        ref.read(pixivConfigProvider).headers['Authorization'] != '' &&
-        ref.read(pixivConfigProvider).headers['Authorization']?.trim() !=
-            'Bearer';
-  }
+  bool isLogin() => userInfo.accessToken?.isNotEmpty ?? false;
 
   @override
   Future<bool> login() {
@@ -277,9 +277,8 @@ class PixivSite extends SiteServer implements SiteAuth {
 
   @override
   bool logout() {
-    ref
-        .read(preferenceProvider.notifier)
-        .writePixivToken(accessToken: '', refreshToken: '');
+    userInfo = userInfo.copyWith(accessToken: '', refreshToken: '');
+    ref.read(preferenceProvider.notifier).writePixivInfo(userInfo);
     return true;
   }
 

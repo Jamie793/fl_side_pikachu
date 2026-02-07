@@ -5,7 +5,9 @@ import 'package:pikachu/datas/models/site_type.dart';
 import 'package:pikachu/datas/services/bases/site_server.dart';
 import 'package:pikachu/providers/pixiv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:pikachu/datas/models/site_type.dart';
+import 'package:pikachu/datas/models/user_info.dart';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 final preferenceProvider =
     AsyncNotifierProvider<PreferenceNotifier, Map<String, dynamic>>(() {
@@ -19,16 +21,14 @@ class PreferenceNotifier extends AsyncNotifier<Map<String, dynamic>> {
   Future<Map<String, dynamic>> build() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final pixivAccessToken = await _secureStorage.read(
-      key: 'pixiv_access_token',
+    final pixivInfo = base64Decode(
+      await _secureStorage.read(key: 'pixiv_info') ?? '',
     );
-    final pixivRefreshToken = await _secureStorage.read(
-      key: 'pixiv_refresh_token',
-    );
+    final pixivInfoObj = UserInfo.fromJson(jsonDecode(utf8.decode(pixivInfo)));
+    // debugPrint('pixivInfoObj: ${pixivInfoObj.toJson()}');
 
     return {
-      'pixivAccessToken': pixivAccessToken ?? "",
-      'pixivRefreshToken': pixivRefreshToken ?? "",
+      'pixivInfo': pixivInfoObj,
       'pikaCookie': prefs.getString('pika_cookie') ?? "",
       'isDarkMode': prefs.getBool('dark_mode') ?? false,
       'currentSite': prefs.getString('current_site') != null
@@ -37,25 +37,13 @@ class PreferenceNotifier extends AsyncNotifier<Map<String, dynamic>> {
     };
   }
 
-  Future<void> writePixivToken({
-    String? accessToken,
-    String? refreshToken,
-  }) async {
-    if (accessToken != null) {
-      await _secureStorage.write(key: 'pixiv_access_token', value: accessToken);
-    }
-    if (refreshToken != null) {
-      await _secureStorage.write(
-        key: 'pixiv_refresh_token',
-        value: refreshToken,
-      );
-    }
+  Future<void> writePixivInfo(UserInfo userInfo) async {
+    _secureStorage.write(
+      key: 'pixiv_info',
+      value: base64Encode(utf8.encode(jsonEncode(userInfo.toJson()))),
+    );
 
-    state = AsyncData({
-      ...state.value ?? {},
-      if (accessToken != null) 'pixivAccessToken': accessToken,
-      if (refreshToken != null) 'pixivRefreshToken': refreshToken,
-    });
+    state = AsyncData({...state.value ?? {}, 'pixivInfo': userInfo});
   }
 
   Future<void> writePikaCookie(String newCookie) async {
@@ -109,7 +97,6 @@ final currentLoginProvider = Provider<bool>((ref) {
   return pref.maybeWhen(
     data: (data) {
       if (site is SiteAuth) {
-        print('isLogin: ${(site as SiteAuth).isLogin()}');
         return (site as SiteAuth).isLogin();
       }
       return false;

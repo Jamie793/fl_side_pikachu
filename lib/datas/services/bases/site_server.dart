@@ -1,12 +1,14 @@
 import 'package:dio/dio.dart';
-import 'package:pikachu/datas/models/site_config.dart';
 import 'package:pikachu/datas/models/site_thumb.dart';
 import 'package:pikachu/datas/models/site_detail.dart';
+import 'package:pikachu/datas/models/user_info.dart';
 
 abstract class SiteServer {
   final Dio dio;
 
-  const SiteServer(this.dio);
+  abstract UserInfo userInfo;
+
+  SiteServer(this.dio);
 
   String getLoginUrl();
 
@@ -31,6 +33,7 @@ abstract class SiteServer {
   Future<List<SiteThumb>> getRelatedIllusts(String id);
   
   Future<List<SiteThumb>> getFollowedMoment({int page, String? restrict});
+  Future<UserInfo> getUserInfo() async => UserInfo.empty();
 
   Map<String, String> getHeaders();
 
