@@ -29,6 +29,8 @@ abstract class SiteServer {
   Future<List<String>> getAutoCompleteWords(String keyword);
 
   Future<List<SiteThumb>> getRelatedIllusts(String id);
+  
+  Future<List<SiteThumb>> getFollowedMoment({int page, String? restrict});
 
   Map<String, String> getHeaders();
 
