@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pikachu/providers/app.dart';
 import 'package:pikachu/providers/pixiv.dart';
 import 'package:pikachu/datas/models/user_info.dart';
+import 'package:pikachu/datas/models/site_user.dart';
 
 class PixivSite extends SiteServer implements SiteAuth {
   final String clientID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
@@ -23,6 +24,8 @@ class PixivSite extends SiteServer implements SiteAuth {
   final String userAgent =
       "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Mobile Safari/537.36";
   String challengeCode = '';
+
+  String? _favoriteNextURL;
 
   final Ref ref;
 
@@ -240,10 +243,44 @@ class PixivSite extends SiteServer implements SiteAuth {
     String? userId,
     String? restrict = 'public',
   }) async {
+    if (page == 0) {
+      _favoriteNextURL = null;
+      final response = await httpGet(
+        'https://app-api.pixiv.net/v1/user/bookmarks/illust?user_id=${userInfo.userId}&restrict=$restrict',
+      );
+      _favoriteNextURL = response.data['next_url'];
+      return _parseThumb(response.data);
+    }
+    if (_favoriteNextURL != null) {
+      final response = await httpGet(_favoriteNextURL!);
+      return _parseThumb(response.data);
+    }
+    return [];
+  }
+
+  Future<List<SiteUser>> getFollowedUsers({
+    int page = 0,
+    String? userId,
+    String? restrict = 'public',
+  }) async {
     final response = await httpGet(
-      'https://app-api.pixiv.net/v1/user/bookmarks/illust?user_id=${userInfo.userId}&restrict=$restrict',
+      'https://app-api.pixiv.net/v1/user/following?restrict=$restrict&user_id=${userInfo.userId}&offset=${page * 30}',
     );
-    return _parseThumb(response.data);
+    final data = List<Map<String, dynamic>>.from(
+      response.data['user_previews'],
+    );
+    return data
+        .map(
+          (e) => SiteUser(
+            userId: e['user']['id'].toString(),
+            userName: e['user']['name'],
+            account: e['user']['account'],
+            avatarUrl: e['user']['profile_image_urls']['medium'],
+            thumbs: List<SiteThumb>.from(_parseThumb(e)),
+            isFollowed: e['user']['is_followed'],
+          ),
+        )
+        .toList();
   }
 
   @override

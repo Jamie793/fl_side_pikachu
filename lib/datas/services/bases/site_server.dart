@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:pikachu/datas/models/site_thumb.dart';
 import 'package:pikachu/datas/models/site_detail.dart';
 import 'package:pikachu/datas/models/user_info.dart';
+import 'package:pikachu/datas/models/site_user.dart';
 
 abstract class SiteServer {
   final Dio dio;
@@ -40,6 +41,12 @@ abstract class SiteServer {
   }) async => [];
 
   Future<List<SiteThumb>> getFavoriteIllusts({
+    int page = 0,
+    String? userId,
+    String? restrict = 'public',
+  }) async => [];
+
+  Future<List<SiteUser>> getFollowedUsers({
     int page = 0,
     String? userId,
     String? restrict = 'public',
