@@ -28,7 +28,7 @@ class ThumbListView extends StatefulWidget {
   const ThumbListView({
     super.key,
     required this.site,
-    this.onFetch,
+    required this.onFetch,
     this.onStatusChange,
     this.controller,
   });

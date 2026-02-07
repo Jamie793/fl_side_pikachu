@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pikachu/providers/providers.dart';
 import 'package:pikachu/datas/models/site_thumb.dart';
-import 'package:pikachu/views/thumb_view.dart';
+import 'package:pikachu/views/thumb_list_view.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});

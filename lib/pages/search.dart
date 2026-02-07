@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pikachu/providers/app.dart';
 import 'package:pikachu/datas/models/site_thumb.dart';
-import 'package:pikachu/views/thumb_view.dart';
+import 'package:pikachu/views/thumb_list_view.dart';
 
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
