@@ -29,7 +29,7 @@ class SiteThumb {
     required this.isFollowed,
   });
 
-  copyWith({
+  SiteThumb copyWith({
     String? id,
     String? title,
     String? thumbUrl,

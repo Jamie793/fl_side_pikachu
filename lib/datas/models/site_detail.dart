@@ -1,4 +1,3 @@
-
 class SiteDetail {
   final List<String> urls;
   final String title;
@@ -17,4 +16,13 @@ class SiteDetail {
     required this.commentCount,
     required this.createDate,
   });
+
+  SiteDetail.empty()
+    : urls = [],
+      title = '',
+      description = '',
+      viewCount = 0,
+      favoriteCount = 0,
+      commentCount = 0,
+      createDate = '';
 }
