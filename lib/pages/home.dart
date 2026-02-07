@@ -12,10 +12,9 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  int _currentPage = 0;
 
-  Future<List<SiteThumb>> _fetchNextPage() async {
-    return ref.read(activeSiteProvider).getRecommend(_currentPage++);
+  Future<List<SiteThumb>> _fetchNextPage(int page) async {
+    return ref.read(activeSiteProvider).getRecommend(page);
   }
 
   @override
@@ -28,7 +27,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Scaffold(
       body: ThumbListView(
         site: ref.read(activeSiteProvider),
-        onFetch: _fetchNextPage,
+        onFetch: (page) => _fetchNextPage(page),
         onStatusChange: (isLoading) {},
       ),
     );

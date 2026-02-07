@@ -15,16 +15,15 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   TextEditingController _controller = TextEditingController();
   ThumbListController _thumbListController = ThumbListController();
   final FocusNode _focusNode = FocusNode();
-  int _currentPage = 0;
   @override
   void initState() {
     super.initState();
   }
 
-  Future<List<SiteThumb>> _fetchNextPage() async {
+  Future<List<SiteThumb>> _fetchNextPage(int page) async {
     return ref
         .read(activeSiteProvider)
-        .searchIllust(_controller.text, _currentPage++);
+        .searchIllust(_controller.text, page);
   }
 
   @override
@@ -53,7 +52,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   Widget _buildResult() {
     return ThumbListView(
       site: ref.read(activeSiteProvider),
-      onFetch: _fetchNextPage,
+      onFetch: (page) => _fetchNextPage(page),
       controller: _thumbListController,
     );
   }
@@ -132,9 +131,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     return;
                   }
                   _focusNode.unfocus();
-                  setState(() {
-                    _currentPage = 0;
-                  });
                   await _thumbListController.refresh();
                   // _fetchNextPage();
                 },

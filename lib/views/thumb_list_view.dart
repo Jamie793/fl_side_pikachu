@@ -4,7 +4,6 @@ import 'package:pikachu/datas/models/illust_type.dart';
 import 'package:pikachu/datas/services/bases/site_server.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pikachu/views/smart_image_view.dart';
 
 class ThumbListController {
@@ -21,7 +20,7 @@ class ThumbListController {
 
 class ThumbListView extends StatefulWidget {
   final SiteServer site;
-  final Future<List<SiteThumb>> Function()? onFetch;
+  final Future<List<SiteThumb>> Function(int page)? onFetch;
   final Function(bool isLoading)? onStatusChange;
   final ThumbListController? controller;
 
@@ -44,6 +43,7 @@ class _ThumbListViewState extends State<ThumbListView> {
   final List<SiteThumb> _items = [];
   bool _isLoading = false;
   bool _isFabVisible = true;
+  int _page = 0;
 
   @override
   void initState() {
@@ -90,14 +90,16 @@ class _ThumbListViewState extends State<ThumbListView> {
     widget.onStatusChange?.call(true);
 
     try {
-      final value = await widget.onFetch?.call();
+      if (isPassive) {
+        _page = 0;
+        _items.clear();
+      }
+
+      final value = await widget.onFetch?.call(_page++);
       if (!mounted) return;
 
       if (value != null && value.isNotEmpty) {
         setState(() {
-          if (isPassive) {
-            _items.clear();
-          }
           _items.addAll(value);
         });
       }

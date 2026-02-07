@@ -44,15 +44,15 @@ class _MomentPageState extends ConsumerState<MomentPage>
     );
   }
 
-  Future<List<SiteThumb>> _fetchFollowedMoment() async {
-    return ref.read(activeSiteProvider).getFollowedMoment();
+  Future<List<SiteThumb>> _fetchFollowedMoment(int page) async {
+    return ref.read(activeSiteProvider).getFollowedMoment(page: page);
   }
 
   Widget _buildMoment() {
     return ThumbListView(
       site: ref.watch(activeSiteProvider),
-      onFetch: () async {
-        return await _fetchFollowedMoment();
+      onFetch: (page) async {
+        return await _fetchFollowedMoment(page);
       },
     );
   }
