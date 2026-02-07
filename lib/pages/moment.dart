@@ -37,22 +37,27 @@ class _MomentPageState extends ConsumerState<MomentPage>
         controller: _tabController,
         children: [
           _buildMoment(),
-          // ThumbListView(category: "hot"),
-          // ThumbListView(category: "fav"),
+          _buildFavorite(),
+          // _buildFollow(),
         ],
       ),
     );
-  }
-
-  Future<List<SiteThumb>> _fetchFollowedMoment(int page) async {
-    return ref.read(activeSiteProvider).getFollowedMoment(page: page);
   }
 
   Widget _buildMoment() {
     return ThumbListView(
       site: ref.watch(activeSiteProvider),
       onFetch: (page) async {
-        return await _fetchFollowedMoment(page);
+        return await ref.read(activeSiteProvider).getFollowedMoment(page: page);
+      },
+    );
+  }
+
+  Widget _buildFavorite() {
+    return ThumbListView(
+      site: ref.watch(activeSiteProvider),
+      onFetch: (page) async {
+        return await ref.read(activeSiteProvider).getFavoriteIllusts(page: page);
       },
     );
   }

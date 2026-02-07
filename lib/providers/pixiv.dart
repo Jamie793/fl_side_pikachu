@@ -49,12 +49,12 @@ final pixivSiteProvider = Provider<PixivSite>((ref) {
       onError: (DioException e, handler) async {
         if (e.response?.statusCode == 400) {
           await site.refreshToken();
-              final options = e.requestOptions;
-              options.headers['Authorization'] =
+          final options = e.requestOptions;
+          options.headers['Authorization'] =
               'Bearer ${site.userInfo.accessToken}';
 
           final response = await Dio().fetch(options);
-              return handler.resolve(response);
+          return handler.resolve(response);
         }
         return handler.next(e);
       },

@@ -235,6 +235,18 @@ class PixivSite extends SiteServer implements SiteAuth {
   }
 
   @override
+  Future<List<SiteThumb>> getFavoriteIllusts({
+    int page = 0,
+    String? userId,
+    String? restrict = 'public',
+  }) async {
+    final response = await httpGet(
+      'https://app-api.pixiv.net/v1/user/bookmarks/illust?user_id=${userInfo.userId}&restrict=$restrict',
+    );
+    return _parseThumb(response.data);
+  }
+
+  @override
   Map<String, String> getHeaders() {
     return ref.read(pixivConfigProvider).headers;
   }
