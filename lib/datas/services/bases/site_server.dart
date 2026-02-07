@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dio/dio.dart';
 import 'package:pikachu/datas/models/site_thumb.dart';
 import 'package:pikachu/datas/models/site_detail.dart';
@@ -12,27 +14,37 @@ abstract class SiteServer {
 
   String getLoginUrl();
 
-  Future<List<SiteThumb>> getDiscoveryList(int page);
+  Future<List<SiteThumb>> getDiscoveryList(int page) async => [];
 
-  Future<List<SiteThumb>> getRecommend(int page);
+  Future<List<SiteThumb>> getRecommend(int page) async => [];
 
-  Future<SiteDetail> getDetail(String id);
+  Future<SiteDetail> getDetail(String id) async => SiteDetail.empty();
 
-  Future<bool> favorIllust(String id);
+  Future<bool> favorIllust(String id) async => false;
 
-  Future<bool> unFavorIllust(String id);
+  Future<bool> unFavorIllust(String id) async => false;
 
-  Future<bool> followUser(String userId);
+  Future<bool> followUser(String userId) async => false;
 
-  Future<bool> unFollowUser(String userId);
+  Future<bool> unFollowUser(String userId) async => false;
 
-  Future<List<SiteThumb>> searchIllust(String keyword, int page);
+  Future<List<SiteThumb>> searchIllust(String keyword, int page) async => [];
 
-  Future<List<String>> getAutoCompleteWords(String keyword);
+  Future<List<String>> getAutoCompleteWords(String keyword) async => [];
 
-  Future<List<SiteThumb>> getRelatedIllusts(String id);
-  
-  Future<List<SiteThumb>> getFollowedMoment({int page, String? restrict});
+  Future<List<SiteThumb>> getRelatedIllusts(String id) async => [];
+
+  Future<List<SiteThumb>> getFollowedMoment({
+    int page = 0,
+    String? restrict = 'public',
+  }) async => [];
+
+  Future<List<SiteThumb>> getFavoriteIllusts({
+    int page = 0,
+    String? userId,
+    String? restrict = 'public',
+  }) async => [];
+
   Future<UserInfo> getUserInfo() async => UserInfo.empty();
 
   Map<String, String> getHeaders();
