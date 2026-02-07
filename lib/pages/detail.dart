@@ -7,6 +7,7 @@ import 'package:pikachu/datas/models/site_detail.dart';
 import 'package:pikachu/datas/models/site_thumb.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/rendering.dart';
+import 'package:pikachu/views/smart_image_view.dart';
 
 class DetailPage extends ConsumerStatefulWidget {
   const DetailPage({super.key});
@@ -131,26 +132,11 @@ class _DetailPageState extends ConsumerState<DetailPage> {
           : _detailData!.urls.length + 1,
       itemBuilder: (context, index) {
         if (index < _detailData!.urls.length) {
-          return Image.network(
-            _detailData!.urls[index],
-            cacheWidth: 450,
+          return SmartImageView(
+            imageUrl: _detailData!.urls[index],
+            cacheWidth: 800,
             fit: BoxFit.contain,
             headers: site.getHeaders(),
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                height: 200,
-                color: Colors.grey[100],
-                child: const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) => Container(
-              height: 100,
-              color: Colors.grey[200],
-              child: const Icon(Icons.broken_image, color: Colors.grey),
-            ),
           );
         } else {
           return Padding(
@@ -187,61 +173,43 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                 SizedBox(height: 10.0),
                 _buildUser(site),
 
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                        ),
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _relatedIllusts.length,
-                    itemBuilder: (context, index) => Card(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/detail',
-                            arguments: _relatedIllusts[index],
-                          );
-                        },
-                        child: Image.network(
-                          _relatedIllusts[index].thumbUrl,
-                          cacheWidth: 350,
-                          fit: BoxFit.cover,
-                          headers: site.getHeaders(),
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              height: 100,
-                              color: Colors.grey[100],
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            );
-                          },
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                                height: 100,
-                                color: Colors.grey[200],
-                                child: const Icon(
-                                  Icons.broken_image,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                _buildRelated(site),
               ],
             ),
           );
         }
       },
+    );
+  }
+
+  Padding _buildRelated(SiteServer site) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+        ),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _relatedIllusts.length,
+        itemBuilder: (context, index) => Card(
+          child: InkWell(
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/detail',
+                arguments: _relatedIllusts[index],
+              );
+            },
+            child: SmartImageView(
+              imageUrl: _relatedIllusts[index].thumbUrl,
+              cacheWidth: 450,
+              fit: BoxFit.cover,
+              headers: site.getHeaders(),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -289,7 +257,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               onPressed: _isBusy
                   ? null
                   : () async {
-                        setState(() => _isBusy = true);
+                      setState(() => _isBusy = true);
                       if (_thumbData?.isFollowed == true) {
                         if (await ref
                             .read(activeSiteProvider)

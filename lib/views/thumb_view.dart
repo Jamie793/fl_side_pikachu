@@ -5,6 +5,8 @@ import 'package:pikachu/datas/services/bases/site_server.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pikachu/views/smart_image_view.dart';
+
 class ThumbListController {
   Future<void> Function()? _onRefreshRequest;
 
@@ -191,37 +193,12 @@ class _ThumbListViewState extends State<ThumbListView> {
                 children: [
                   AspectRatio(
                     aspectRatio: item.aspectRatio,
-                    child: CachedNetworkImage(
-                      imageUrl: "http://via.placeholder.com/350x150",
-                      // 占位
-                      placeholder: (context, url) =>
-                          CircularProgressIndicator(),
-                      // 错误处理：同样可以结合 setState 刷新 url 或 key
-                      errorWidget: (context, url, error) => GestureDetector(
-                        onTap: () => setState(() {}), // 简单的重绘触发
-                        child: Icon(Icons.error),
-                      ),
+                    child: SmartImageView(
+                      imageUrl: item.thumbUrl,
+                      fit: BoxFit.cover,
+                      cacheWidth: 350,
+                      headers: widget.site.getHeaders(),
                     ),
-
-                    // Image.network(
-                    //   item.thumbUrl,
-                    //   fit: BoxFit.cover,
-                    //   cacheWidth: 300,
-                    //   headers: widget.site.getHeaders(),
-                    //   errorBuilder: (context, error, stackTrace) {
-                    //     return const Icon(Icons.error);
-                    //   },
-                    //   frameBuilder:
-                    //       (context, child, frame, wasSynchronouslyLoaded) {
-                    //         if (wasSynchronouslyLoaded) return child;
-                    //         return AnimatedOpacity(
-                    //           opacity: frame == null ? 0 : 1,
-                    //           duration: const Duration(milliseconds: 500),
-                    //           curve: Curves.easeOut,
-                    //           child: child,
-                    //         );
-                    //       },
-                    // ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(
