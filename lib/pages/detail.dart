@@ -22,6 +22,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
   SiteThumb? _thumbData;
   bool _isLoading = false;
   bool _isFabVisible = true;
+  bool _isBusy = false;
 
   void _fetchDetail(SiteThumb thumbData) async {
     if (_isLoading) return;
@@ -82,21 +83,31 @@ class _DetailPageState extends ConsumerState<DetailPage> {
           scale: _isFabVisible ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 300),
           child: FloatingActionButton(
-            onPressed: () async {
-              if (_thumbData?.isFavorited == true) {
-                if (await site.unFavorIllust(_thumbData?.id ?? '') == true) {
-                  setState(
-                    () => _thumbData = _thumbData?.copyWith(isFavorited: false),
-                  );
-                }
-              } else {
-                if (await site.favorIllust(_thumbData?.id ?? '') == true) {
-                  setState(
-                    () => _thumbData = _thumbData?.copyWith(isFavorited: true),
-                  );
-                }
-              }
-            },
+            onPressed: _isBusy
+                ? null
+                : () async {
+                    setState(() => _isBusy = true);
+                    if (_thumbData?.isFavorited == true) {
+                      if (await site.unFavorIllust(_thumbData?.id ?? '') ==
+                          true) {
+                        setState(
+                          () => _thumbData = _thumbData?.copyWith(
+                            isFavorited: false,
+                          ),
+                        );
+                      }
+                    } else {
+                      if (await site.favorIllust(_thumbData?.id ?? '') ==
+                          true) {
+                        setState(
+                          () => _thumbData = _thumbData?.copyWith(
+                            isFavorited: true,
+                          ),
+                        );
+                      }
+                    }
+                    setState(() => _isBusy = false);
+                  },
             child: Icon(
               _thumbData?.isFavorited == true
                   ? Icons.favorite
@@ -164,7 +175,12 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                   children: [
                     Text(
                       '作品ID: ${_thumbData?.id ?? 0}',
-                      style: const TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    SizedBox(width: 20.0),
+                    Text(
+                      '作者ID: ${_thumbData?.userId ?? 0}',
+                      style: const TextStyle(fontSize: 14),
                     ),
                   ],
                 ),
@@ -174,16 +190,21 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                        ),
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: _relatedIllusts.length,
                     itemBuilder: (context, index) => Card(
                       child: InkWell(
                         onTap: () {
-                          Navigator.pushNamed(context, '/detail', arguments: _relatedIllusts[index]);
+                          Navigator.pushNamed(
+                            context,
+                            '/detail',
+                            arguments: _relatedIllusts[index],
+                          );
                         },
                         child: Image.network(
                           _relatedIllusts[index].thumbUrl,
@@ -196,18 +217,21 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                               height: 100,
                               color: Colors.grey[100],
                               child: const Center(
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
                             );
                           },
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            height: 100,
-                            color: Colors.grey[200],
-                            child: const Icon(
-                              Icons.broken_image,
-                              color: Colors.grey,
-                            ),
-                          ),
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                height: 100,
+                                color: Colors.grey[200],
+                                child: const Icon(
+                                  Icons.broken_image,
+                                  color: Colors.grey,
+                                ),
+                              ),
                         ),
                       ),
                     ),
@@ -262,25 +286,31 @@ class _DetailPageState extends ConsumerState<DetailPage> {
             ),
             Spacer(),
             ElevatedButton(
-              onPressed: () async {
-                if (_thumbData?.isFollowed == true) {
-                  if (await ref
-                      .read(activeSiteProvider)
-                      .followUser(_thumbData?.userId.toString() ?? '')) {
-                    setState(() {
-                      _thumbData = _thumbData?.copyWith(isFollowed: false);
-                    });
-                  }
-                } else {
-                  if (await ref
-                      .read(activeSiteProvider)
-                      .followUser(_thumbData?.userId.toString() ?? '')) {
-                    setState(() {
-                      _thumbData = _thumbData?.copyWith(isFollowed: true);
-                    });
-                  }
-                }
-              },
+              onPressed: _isBusy
+                  ? null
+                  : () async {
+                        setState(() => _isBusy = true);
+                      if (_thumbData?.isFollowed == true) {
+                        if (await ref
+                            .read(activeSiteProvider)
+                            .followUser(_thumbData?.userId.toString() ?? '')) {
+                          setState(() {
+                            _thumbData = _thumbData?.copyWith(
+                              isFollowed: false,
+                            );
+                          });
+                        }
+                      } else {
+                        if (await ref
+                            .read(activeSiteProvider)
+                            .followUser(_thumbData?.userId.toString() ?? '')) {
+                          setState(() {
+                            _thumbData = _thumbData?.copyWith(isFollowed: true);
+                          });
+                        }
+                      }
+                      setState(() => _isBusy = false);
+                    },
               child: Text(
                 _thumbData?.isFollowed == true ? '取消关注' : '关注',
                 style: TextStyle(fontSize: 16),
@@ -343,7 +373,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                   Navigator.pushNamed(context, '/search', arguments: '$tag');
                 },
                 child: Text(
-                  '#$tag',
+                  '#$tag  ',
                   style: const TextStyle(fontSize: 16, color: Colors.blue),
                 ),
               ),
