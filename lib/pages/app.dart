@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pikachu/pages/pages.dart';
 import 'package:pikachu/datas/models/site_type.dart';
 import 'package:pikachu/providers/providers.dart';
+import 'package:pikachu/datas/services/bases/site_auth.dart';
 
 class AppPage extends ConsumerStatefulWidget {
   const AppPage({super.key});
@@ -93,6 +94,15 @@ class _AppPageState extends ConsumerState<AppPage> {
               onTap: () => ref
                   .read(activeSiteProvider.notifier)
                   .changeSite(SiteType.ehentai),
+            ),
+            ListTile(
+              title: const Text('登出'),
+              onTap: () {
+                final site = ref.read(activeSiteProvider);
+                if (site is SiteAuth) {
+                  (site as SiteAuth).logout();
+                }
+              },
             ),
           ],
         ),
