@@ -4,7 +4,7 @@ import 'package:pikachu/datas/models/illust_type.dart';
 import 'package:pikachu/datas/services/bases/site_server.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-
+import 'package:cached_network_image/cached_network_image.dart';
 class ThumbListController {
   Future<void> Function()? _onRefreshRequest;
 
@@ -146,7 +146,7 @@ class _ThumbListViewState extends State<ThumbListView> {
           itemCount: _items.length,
           itemBuilder: (context, index) {
             // if (index < _items.length) {
-              return _buildItem(_items[index], index);
+            return _buildItem(_items[index], index);
             // } else {
             //   return const Padding(
             //     padding: EdgeInsets.all(16.0),
@@ -174,8 +174,10 @@ class _ThumbListViewState extends State<ThumbListView> {
         elevation: 4,
         margin: const EdgeInsets.all(5),
         child: InkWell(
-          onTap: () async{
-            final res = await Navigator.pushNamed(context, '/detail', arguments: item) as SiteThumb?;
+          onTap: () async {
+            final res =
+                await Navigator.pushNamed(context, '/detail', arguments: item)
+                    as SiteThumb?;
             if (res != null) {
               setState(() {
                 _items[index] = res.copyWith();
@@ -189,25 +191,37 @@ class _ThumbListViewState extends State<ThumbListView> {
                 children: [
                   AspectRatio(
                     aspectRatio: item.aspectRatio,
-                    child: Image.network(
-                      item.thumbUrl,
-                      fit: BoxFit.cover,
-                      cacheWidth: 300,
-                      headers: widget.site.getHeaders(),
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(Icons.error);
-                      },
-                      frameBuilder:
-                          (context, child, frame, wasSynchronouslyLoaded) {
-                            if (wasSynchronouslyLoaded) return child;
-                            return AnimatedOpacity(
-                              opacity: frame == null ? 0 : 1,
-                              duration: const Duration(milliseconds: 500),
-                              curve: Curves.easeOut,
-                              child: child,
-                            );
-                          },
+                    child: CachedNetworkImage(
+                      imageUrl: "http://via.placeholder.com/350x150",
+                      // 占位
+                      placeholder: (context, url) =>
+                          CircularProgressIndicator(),
+                      // 错误处理：同样可以结合 setState 刷新 url 或 key
+                      errorWidget: (context, url, error) => GestureDetector(
+                        onTap: () => setState(() {}), // 简单的重绘触发
+                        child: Icon(Icons.error),
+                      ),
                     ),
+
+                    // Image.network(
+                    //   item.thumbUrl,
+                    //   fit: BoxFit.cover,
+                    //   cacheWidth: 300,
+                    //   headers: widget.site.getHeaders(),
+                    //   errorBuilder: (context, error, stackTrace) {
+                    //     return const Icon(Icons.error);
+                    //   },
+                    //   frameBuilder:
+                    //       (context, child, frame, wasSynchronouslyLoaded) {
+                    //         if (wasSynchronouslyLoaded) return child;
+                    //         return AnimatedOpacity(
+                    //           opacity: frame == null ? 0 : 1,
+                    //           duration: const Duration(milliseconds: 500),
+                    //           curve: Curves.easeOut,
+                    //           child: child,
+                    //         );
+                    //       },
+                    // ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(
