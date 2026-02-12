@@ -1,7 +1,7 @@
 allprojects {
     repositories {
-        maven("https://maven.aliyun.com/repository/public")
-        maven("https://maven.aliyun.com/repository/google")
+        maven("https://mirrors.cloud.tencent.com/maven-public")
+        maven("https://mirrors.cloud.tencent.com/google")
         mavenCentral()
         google()
     }
