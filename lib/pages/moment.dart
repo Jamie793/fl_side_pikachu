@@ -15,21 +15,23 @@ class MomentPage extends ConsumerStatefulWidget {
 class _MomentPageState extends ConsumerState<MomentPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  int _followPage = 0;
+  final List<SiteUser> _followedUsers = [];
+  final ScrollController _followScrollController = ScrollController();
   bool _isLoading = false;
   bool _isBusy = false;
-  List<SiteUser> _followedUsers = [];
+  String? _followNextOffset;
 
   void _fetchFollow() async {
     if (_isLoading) return;
     setState(() => _isLoading = true);
     ref
         .read(activeSiteProvider)
-        .getFollowedUsers(page: _followPage++)
+        .getFollowedUsers(offset: _followNextOffset)
         .then((value) {
           setState(() {
-            _followedUsers.addAll(value);
-            setState(() => _isLoading = false);
+            _followedUsers.addAll(value.data);
+            _followNextOffset = value.nextOffset as String?;
+            _isLoading = false;
           });
         })
         .onError((error, stackTrace) {
@@ -42,6 +44,12 @@ class _MomentPageState extends ConsumerState<MomentPage>
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: 3);
+    _followScrollController.addListener(() {
+      if (_followScrollController.position.pixels >=
+          _followScrollController.position.maxScrollExtent - 200) {
+        _fetchFollow();
+      }
+    });
     _fetchFollow();
   }
 
@@ -67,8 +75,11 @@ class _MomentPageState extends ConsumerState<MomentPage>
   Widget _buildMoment() {
     return ThumbListView(
       site: ref.watch(activeSiteProvider),
-      onFetch: (page) async {
-        return await ref.read(activeSiteProvider).getFollowedMoment(page: page);
+      initial: null,
+      onFetch: (offset) async {
+        return await ref
+            .read(activeSiteProvider)
+            .getFollowedMoment(offset: offset);
       },
     );
   }
@@ -76,28 +87,41 @@ class _MomentPageState extends ConsumerState<MomentPage>
   Widget _buildFavorite() {
     return ThumbListView(
       site: ref.watch(activeSiteProvider),
-      onFetch: (page) async {
+      initial: null,
+      onFetch: (offset) async {
         return await ref
             .read(activeSiteProvider)
-            .getFavoriteIllusts(page: page);
+            .getFavoriteIllusts(offset: offset);
       },
     );
   }
 
   Widget _buildFollow() {
-    return RefreshIndicator(
-      onRefresh: () async {
-        setState(() {
-          _followedUsers.clear();
-          _followPage = 0;
-        });
-        _fetchFollow();
-      },
-      child: ListView.builder(
-        itemCount: _followedUsers.length,
-        itemBuilder: (context, index) {
-          return _buildItem(index);
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _followScrollController.animateTo(0, duration: const Duration(milliseconds: 100), curve: Curves.ease);
         },
+        child: const Icon(Icons.arrow_upward_rounded),
+      ),
+      body: Expanded(
+        // controller: _followScrollController,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            setState(() {
+              _followedUsers.clear();
+              _followNextOffset = null;
+            });
+            _fetchFollow();
+          },
+          child: ListView.builder(
+            controller: _followScrollController,
+            itemCount: _followedUsers.length,
+            itemBuilder: (context, index) {
+              return _buildItem(index);
+            },
+          ),
+        ),
       ),
     );
   }

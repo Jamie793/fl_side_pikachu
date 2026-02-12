@@ -18,13 +18,13 @@ class DetailPage extends ConsumerStatefulWidget {
 
 class _DetailPageState extends ConsumerState<DetailPage> {
   final ScrollController _scrollController = ScrollController();
-  final ScrollController _relatedScrollController = ScrollController();
   final List<SiteThumb> _relatedIllusts = [];
   SiteDetail? _detailData;
   SiteThumb? _thumbData;
   bool _isLoading = false;
   bool _isFabVisible = true;
   bool _isBusy = false;
+  String? _relatedNextOffset;
 
   void _fetchDetail(SiteThumb thumbData) async {
     if (_isLoading) return;
@@ -38,11 +38,15 @@ class _DetailPageState extends ConsumerState<DetailPage> {
   }
 
   void _fetchRelated(SiteThumb thumbData) async {
-    ref.read(activeSiteProvider).getRelatedIllusts(thumbData.id).then((value) {
-      setState(() {
-        _relatedIllusts.addAll(value);
-      });
-    });
+    ref
+        .read(activeSiteProvider)
+        .getRelatedIllusts(id: thumbData.id, offset: _relatedNextOffset)
+        .then((value) {
+          setState(() {
+            _relatedIllusts.addAll(value.data);
+            _relatedNextOffset = value.nextOffset as String?;
+          });
+        });
   }
 
   @override

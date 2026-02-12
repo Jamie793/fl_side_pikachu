@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pikachu/datas/models/site_data.dart';
 import 'package:pikachu/providers/providers.dart';
 import 'package:pikachu/datas/models/site_thumb.dart';
 import 'package:pikachu/views/thumb_list_view.dart';
@@ -13,8 +14,8 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
 
-  Future<List<SiteThumb>> _fetchNextPage(int page) async {
-    return ref.read(activeSiteProvider).getRecommend(page);
+  Future<SiteData<SiteThumb>> _fetchNextPage(Object? offset) async {
+    return ref.read(activeSiteProvider).getRecommend(offset);
   }
 
   @override
@@ -27,7 +28,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Scaffold(
       body: ThumbListView(
         site: ref.read(activeSiteProvider),
-        onFetch: (page) => _fetchNextPage(page),
+        initial: null,
+        onFetch: (offset) => _fetchNextPage(offset),
         onStatusChange: (isLoading) {},
       ),
     );

@@ -1,10 +1,9 @@
-import 'dart:math';
-
 import 'package:dio/dio.dart';
 import 'package:pikachu/datas/models/site_thumb.dart';
 import 'package:pikachu/datas/models/site_detail.dart';
 import 'package:pikachu/datas/models/user_info.dart';
 import 'package:pikachu/datas/models/site_user.dart';
+import 'package:pikachu/datas/models/site_data.dart';
 
 abstract class SiteServer {
   final Dio dio;
@@ -17,7 +16,8 @@ abstract class SiteServer {
 
   Future<List<SiteThumb>> getDiscoveryList(int page) async => [];
 
-  Future<List<SiteThumb>> getRecommend(int page) async => [];
+  Future<SiteData<SiteThumb>> getRecommend(Object? offset) async =>
+      SiteData<SiteThumb>(data: []);
 
   Future<SiteDetail> getDetail(String id) async => SiteDetail.empty();
 
@@ -29,28 +29,34 @@ abstract class SiteServer {
 
   Future<bool> unFollowUser(String userId) async => false;
 
-  Future<List<SiteThumb>> searchIllust(String keyword, int page) async => [];
+  Future<SiteData<SiteThumb>> searchIllust({
+    required String keyword,
+    Object? offset,
+  }) async => SiteData<SiteThumb>(data: []);
 
   Future<List<String>> getAutoCompleteWords(String keyword) async => [];
 
-  Future<List<SiteThumb>> getRelatedIllusts(String id) async => [];
+  Future<SiteData<SiteThumb>> getRelatedIllusts({
+    required String id,
+    Object? offset,
+  }) async => SiteData<SiteThumb>(data: []);
 
-  Future<List<SiteThumb>> getFollowedMoment({
-    int page = 0,
+  Future<SiteData<SiteThumb>> getFollowedMoment({
     String? restrict = 'public',
-  }) async => [];
+    Object? offset,
+  }) async => SiteData<SiteThumb>(data: []);
 
-  Future<List<SiteThumb>> getFavoriteIllusts({
-    int page = 0,
+  Future<SiteData<SiteThumb>> getFavoriteIllusts({
     String? userId,
     String? restrict = 'public',
-  }) async => [];
+    Object? offset,
+  }) async => SiteData<SiteThumb>(data: []);
 
-  Future<List<SiteUser>> getFollowedUsers({
-    int page = 0,
+  Future<SiteData<SiteUser>> getFollowedUsers({
     String? userId,
     String? restrict = 'public',
-  }) async => [];
+    Object? offset,
+  }) async => SiteData<SiteUser>(data: []);
 
   Future<UserInfo> getUserInfo() async => UserInfo.empty();
 

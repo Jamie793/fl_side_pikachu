@@ -43,7 +43,7 @@ class _AppPageState extends ConsumerState<AppPage> {
               ),
         actions: [
           IconButton(
-            icon: Icon(Icons.search,size: 30,),
+            icon: Icon(Icons.search, size: 30),
             onPressed: () => Navigator.pushNamed(context, '/search'),
           ),
         ],

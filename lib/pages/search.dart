@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pikachu/datas/models/site_data.dart';
 import 'package:pikachu/providers/app.dart';
 import 'package:pikachu/datas/models/site_thumb.dart';
 import 'package:pikachu/views/thumb_list_view.dart';
@@ -12,18 +13,18 @@ class SearchPage extends ConsumerStatefulWidget {
 }
 
 class _SearchPageState extends ConsumerState<SearchPage> {
-  TextEditingController _controller = TextEditingController();
-  ThumbListController _thumbListController = ThumbListController();
+  final TextEditingController _controller = TextEditingController();
+  final ThumbListController _thumbListController = ThumbListController();
   final FocusNode _focusNode = FocusNode();
   @override
   void initState() {
     super.initState();
   }
 
-  Future<List<SiteThumb>> _fetchNextPage(int page) async {
+  Future<SiteData<SiteThumb>> _fetchNextPage(Object? offset) async {
     return ref
         .read(activeSiteProvider)
-        .searchIllust(_controller.text, page);
+        .searchIllust(keyword: _controller.text, offset: offset);
   }
 
   @override
@@ -52,7 +53,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   Widget _buildResult() {
     return ThumbListView(
       site: ref.read(activeSiteProvider),
-      onFetch: (page) => _fetchNextPage(page),
+      initial: null,
+      onFetch: (offset) => _fetchNextPage(offset),
       controller: _thumbListController,
     );
   }
@@ -132,7 +134,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   }
                   _focusNode.unfocus();
                   await _thumbListController.refresh();
-                  // _fetchNextPage();
                 },
               ),
             ],

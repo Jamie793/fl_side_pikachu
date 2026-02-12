@@ -12,6 +12,7 @@ import 'package:pikachu/providers/app.dart';
 import 'package:pikachu/providers/pixiv.dart';
 import 'package:pikachu/datas/models/user_info.dart';
 import 'package:pikachu/datas/models/site_user.dart';
+import 'package:pikachu/datas/models/site_data.dart';
 
 class PixivSite extends SiteServer implements SiteAuth {
   final String clientID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
@@ -24,9 +25,6 @@ class PixivSite extends SiteServer implements SiteAuth {
   final String userAgent =
       "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Mobile Safari/537.36";
   String challengeCode = '';
-
-  String? _favoriteNextURL;
-
   final Ref ref;
 
   @override
@@ -85,11 +83,17 @@ class PixivSite extends SiteServer implements SiteAuth {
   }
 
   @override
-  Future<List<SiteThumb>> getRecommend(int page) async {
-    final response = await httpGet(
-      'https://app-api.pixiv.net/v1/illust/recommended?offset=${page * 30}',
+  Future<SiteData<SiteThumb>> getRecommend(Object? offset) async {
+    final url = offset == null
+        ? 'https://app-api.pixiv.net/v1/illust/recommended'
+        : offset as String;
+
+    final response = await httpGet(url);
+    return SiteData<SiteThumb>(
+      data: _parseThumb(response.data),
+      nextOffset: response.data['next_url'],
+      hasMore: response.data['next_url'] != null,
     );
-    return _parseThumb(response.data);
   }
 
   // @override
@@ -199,11 +203,19 @@ class PixivSite extends SiteServer implements SiteAuth {
   }
 
   @override
-  Future<List<SiteThumb>> searchIllust(String keyword, int page) async {
-    final response = await httpGet(
-      'https://app-api.pixiv.net/v1/search/illust?word=$keyword&offset=${page * 30}',
+  Future<SiteData<SiteThumb>> searchIllust({
+    required String keyword,
+    dynamic offset,
+  }) async {
+    final url = offset == null
+        ? 'https://app-api.pixiv.net/v1/search/illust?word=$keyword'
+        : offset as String;
+    final response = await httpGet(url);
+    return SiteData<SiteThumb>(
+      data: _parseThumb(response.data),
+      nextOffset: response.data['next_url'],
+      hasMore: response.data['next_url'] != null,
     );
-    return _parseThumb(response.data);
   }
 
   @override
@@ -216,71 +228,83 @@ class PixivSite extends SiteServer implements SiteAuth {
   }
 
   @override
-  Future<List<SiteThumb>> getRelatedIllusts(String id) async {
-    if (id.isEmpty) {
-      return [];
-    }
-    final response = await httpGet(
-      'https://app-api.pixiv.net/v2/illust/related?illust_id=$id',
+  Future<SiteData<SiteThumb>> getRelatedIllusts({
+    required String id,
+    Object? offset,
+  }) async {
+    final url = offset == null
+        ? 'https://app-api.pixiv.net/v2/illust/related?illust_id=$id'
+        : offset as String;
+    final response = await httpGet(url);
+    return SiteData<SiteThumb>(
+      data: _parseThumb(response.data),
+      nextOffset: response.data['next_url'],
+      hasMore: response.data['next_url'] != null,
     );
-    return _parseThumb(response.data);
   }
 
   @override
-  Future<List<SiteThumb>> getFollowedMoment({
-    int page = 0,
+  Future<SiteData<SiteThumb>> getFollowedMoment({
     String? restrict = 'public',
+    Object? offset,
   }) async {
-    final response = await httpGet(
-      'https://app-api.pixiv.net/v2/illust/follow?restrict=$restrict&offset=${page * 30}',
+    final url = offset == null
+        ? 'https://app-api.pixiv.net/v2/illust/follow?restrict=$restrict'
+        : offset as String;
+    final response = await httpGet(url);
+    return SiteData<SiteThumb>(
+      data: _parseThumb(response.data),
+      nextOffset: response.data['next_url'],
+      hasMore: response.data['next_url'] != null,
     );
-    return _parseThumb(response.data);
   }
 
   @override
-  Future<List<SiteThumb>> getFavoriteIllusts({
-    int page = 0,
+  Future<SiteData<SiteThumb>> getFavoriteIllusts({
     String? userId,
     String? restrict = 'public',
+    Object? offset,
   }) async {
-    if (page == 0) {
-      _favoriteNextURL = null;
-      final response = await httpGet(
-        'https://app-api.pixiv.net/v1/user/bookmarks/illust?user_id=${userInfo.userId}&restrict=$restrict',
-      );
-      _favoriteNextURL = response.data['next_url'];
-      return _parseThumb(response.data);
-    }
-    if (_favoriteNextURL != null) {
-      final response = await httpGet(_favoriteNextURL!);
-      return _parseThumb(response.data);
-    }
-    return [];
+    final url = offset == null
+        ? 'https://app-api.pixiv.net/v1/user/bookmarks/illust?user_id=${userInfo.userId}&restrict=$restrict'
+        : offset as String;
+    final response = await httpGet(url);
+    return SiteData<SiteThumb>(
+      data: _parseThumb(response.data),
+      nextOffset: response.data['next_url'],
+      hasMore: response.data['next_url'] != null,
+    );
   }
 
-  Future<List<SiteUser>> getFollowedUsers({
-    int page = 0,
+  @override
+  Future<SiteData<SiteUser>> getFollowedUsers({
     String? userId,
     String? restrict = 'public',
+    Object? offset,
   }) async {
-    final response = await httpGet(
-      'https://app-api.pixiv.net/v1/user/following?restrict=$restrict&user_id=${userInfo.userId}&offset=${page * 30}',
-    );
+    final url = offset == null
+        ? 'https://app-api.pixiv.net/v1/user/following?restrict=$restrict&user_id=${userInfo.userId}'
+        : offset as String;
+    final response = await httpGet(url);
     final data = List<Map<String, dynamic>>.from(
       response.data['user_previews'],
     );
-    return data
-        .map(
-          (e) => SiteUser(
-            userId: e['user']['id'].toString(),
-            userName: e['user']['name'],
-            account: e['user']['account'],
-            avatarUrl: e['user']['profile_image_urls']['medium'],
-            thumbs: List<SiteThumb>.from(_parseThumb(e)),
-            isFollowed: e['user']['is_followed'],
-          ),
-        )
-        .toList();
+    return SiteData<SiteUser>(
+      data: data
+          .map(
+            (e) => SiteUser(
+              userId: e['user']['id'].toString(),
+              userName: e['user']['name'],
+              account: e['user']['account'],
+              avatarUrl: e['user']['profile_image_urls']['medium'],
+              thumbs: List<SiteThumb>.from(_parseThumb(e)),
+              isFollowed: e['user']['is_followed'],
+            ),
+          )
+          .toList(),
+      nextOffset: response.data['next_url'],
+      hasMore: response.data['next_url'] != null,
+    );
   }
 
   @override

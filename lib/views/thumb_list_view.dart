@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pikachu/datas/models/site_data.dart';
 import 'package:pikachu/datas/models/site_thumb.dart';
 import 'package:pikachu/datas/models/illust_type.dart';
 import 'package:pikachu/datas/services/bases/site_server.dart';
@@ -20,13 +21,15 @@ class ThumbListController {
 
 class ThumbListView extends StatefulWidget {
   final SiteServer site;
-  final Future<List<SiteThumb>> Function(int page)? onFetch;
+  final Future<SiteData<SiteThumb>> Function(Object? offset) onFetch;
   final Function(bool isLoading)? onStatusChange;
   final ThumbListController? controller;
+  final Object? initial;
 
   const ThumbListView({
     super.key,
     required this.site,
+    required this.initial,
     required this.onFetch,
     this.onStatusChange,
     this.controller,
@@ -43,11 +46,14 @@ class _ThumbListViewState extends State<ThumbListView> {
   final List<SiteThumb> _items = [];
   bool _isLoading = false;
   bool _isFabVisible = true;
-  int _page = 0;
+  dynamic _nextOffset;
+  bool _hasMore = true;
 
   @override
   void initState() {
     super.initState();
+
+    _nextOffset = widget.initial;
 
     _bindController();
 
@@ -83,7 +89,7 @@ class _ThumbListViewState extends State<ThumbListView> {
   }
 
   Future<void> loadMore(bool isPassive) async {
-    if (_isLoading) return;
+    if (_isLoading || !_hasMore) return;
     setState(() {
       _isLoading = true;
     });
@@ -91,16 +97,18 @@ class _ThumbListViewState extends State<ThumbListView> {
 
     try {
       if (isPassive) {
-        _page = 0;
+        _nextOffset = widget.initial;
         _items.clear();
       }
 
-      final value = await widget.onFetch?.call(_page++);
+      final value = await widget.onFetch.call(_nextOffset);
       if (!mounted) return;
 
-      if (value != null && value.isNotEmpty) {
+      if (value.data.isNotEmpty) {
         setState(() {
-          _items.addAll(value);
+          _items.addAll(value.data);
+          _nextOffset = value.nextOffset;
+          _hasMore = value.hasMore;
         });
       }
     } catch (error) {
