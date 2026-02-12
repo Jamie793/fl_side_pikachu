@@ -21,7 +21,7 @@ class _MomentPageState extends ConsumerState<MomentPage>
   bool _isBusy = false;
   String? _followNextOffset;
 
-  void _fetchFollow() async {
+  Future<void> _fetchFollow() async {
     if (_isLoading) return;
     setState(() => _isLoading = true);
     ref
@@ -100,27 +100,28 @@ class _MomentPageState extends ConsumerState<MomentPage>
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _followScrollController.animateTo(0, duration: const Duration(milliseconds: 100), curve: Curves.ease);
+          _followScrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 100),
+            curve: Curves.ease,
+          );
         },
         child: const Icon(Icons.arrow_upward_rounded),
       ),
-      body: Expanded(
-        // controller: _followScrollController,
-        child: RefreshIndicator(
-          onRefresh: () async {
-            setState(() {
-              _followedUsers.clear();
-              _followNextOffset = null;
-            });
-            _fetchFollow();
+      body: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {
+            _followedUsers.clear();
+            _followNextOffset = null;
+          });
+          await _fetchFollow();
+        },
+        child: ListView.builder(
+          controller: _followScrollController,
+          itemCount: _followedUsers.length,
+          itemBuilder: (context, index) {
+            return _buildItem(index);
           },
-          child: ListView.builder(
-            controller: _followScrollController,
-            itemCount: _followedUsers.length,
-            itemBuilder: (context, index) {
-              return _buildItem(index);
-            },
-          ),
         ),
       ),
     );
@@ -171,7 +172,6 @@ class _MomentPageState extends ConsumerState<MomentPage>
                 ),
                 Spacer(),
                 ElevatedButton(
-                  child: Text(_followedUsers[index].isFollowed ? '取关' : '关注'),
                   onPressed: _isBusy
                       ? null
                       : () {
@@ -212,6 +212,7 @@ class _MomentPageState extends ConsumerState<MomentPage>
                                 });
                           }
                         },
+                  child: Text(_followedUsers[index].isFollowed ? '取关' : '关注'),
                 ),
               ],
             ),
@@ -235,6 +236,7 @@ class _MomentPageState extends ConsumerState<MomentPage>
                 },
                 child: SmartImageView(
                   imageUrl: _followedUsers[index].thumbs[index2].thumbUrl,
+                  headers: ref.read(activeSiteProvider).getHeaders(),
                   fit: BoxFit.cover,
                   cacheWidth: 450,
                 ),

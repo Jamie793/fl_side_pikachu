@@ -17,7 +17,7 @@ class SmartImageView extends StatefulWidget {
     this.height,
     this.cacheWidth,
     this.cacheHeight,
-    this.headers = const {},
+    required this.headers,
     this.fit = BoxFit.cover,
   });
 
@@ -28,10 +28,12 @@ class SmartImageView extends StatefulWidget {
 class _SmartImageViewState extends State<SmartImageView> {
   Key _imageKey = UniqueKey();
 
-  void _retry() {
-    setState(() {
-      _imageKey = UniqueKey();
-    });
+  void _retry() async {
+    await CachedNetworkImage.evictFromCache(widget.imageUrl);
+
+    if (mounted) {
+      setState(() => _imageKey = UniqueKey());
+    }
   }
 
   @override
@@ -45,11 +47,10 @@ class _SmartImageViewState extends State<SmartImageView> {
       httpHeaders: widget.headers,
       memCacheWidth: widget.cacheWidth?.toInt(),
       memCacheHeight: widget.cacheHeight?.toInt(),
-      placeholder: (context, url) =>
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          ),
+      placeholder: (context, url) => Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      ),
       errorWidget: (context, url, error) => GestureDetector(
         onTap: _retry,
         child: Container(
